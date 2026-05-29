@@ -405,13 +405,70 @@
     flex-shrink: 0;
   }
   .letter-header-wrap img { width: 100%; display: block; }
-  .letter-page-1 { height: 1122px; max-height: 1122px; }
-  .letter-page-body { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
-  .letter-page-spacer { flex: 1 1 auto; min-height: 20px; }
+  .letter-page-1,
+  .letter-page-cont,
+  .letter-page-last { height: 1122px; max-height: 1122px; }
+  .letter-page-cont .letter-content-wrapper { padding-top: 8mm; }
+  .letter-page-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding-bottom: var(--letter-footer-h, 72px);
+  }
+  .letter-page-last .letter-page-body {
+    padding-bottom: var(--letter-bottom-stack-h, 108px);
+  }
+  /* ຜູ້ປະສານ + ຟຸດເຕີ ຕິດກັນ — ລົງຕຳເທົ່ານັ້ນ */
+  .letter-page-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+  }
+  .letter-page-bottom .letter-footer-wrap {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    flex-shrink: 0;
+  }
+  .letter-page:not(.letter-page-last) .letter-page-bottom .letter-coordinator-wrap {
+    display: none;
+  }
+  .letter-page-bottom .letter-coordinator-wrap {
+    flex-shrink: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0 0 0 3cm;
+    box-sizing: border-box;
+    font-size: 8pt;
+    color: #000;
+    line-height: 1.3;
+  }
+  .letter-coordinator-wrap {
+    flex-shrink: 0;
+    font-size: 8pt;
+    color: #000;
+    line-height: 1.3;
+  }
+  .letter-coordinator-wrap .ltr-contact {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: 8pt;
+    color: #000;
+  }
   .letter-content-wrapper {
     position: relative;
     padding-top: 20mm; /* pull text much closer to header */
-    min-height: calc(100% - 32mm);
+    flex: 0 1 auto;
+    min-height: 0;
     box-sizing: border-box;
     padding-bottom: 0;
   }
@@ -421,12 +478,19 @@
     right: 0;
     bottom: 0;
     flex-shrink: 0;
+    z-index: 2;
+  }
+  .letter-page-bottom .letter-footer-wrap {
+    position: static;
+    z-index: auto;
   }
   .letter-footer-wrap img { width: 100%; display: block; }
   .page1-content {
     display: block;
-    /* Keep last contact lines safely above fixed footer */
-    padding-bottom: 26mm;
+    padding-bottom: 4mm;
+  }
+  .letter-page-last .page1-content {
+    padding-bottom: 2mm;
   }
   .letter-currency-label {
     font-size: 12px;
@@ -472,6 +536,54 @@
   .ltr-top .left { text-align: left; }
   .ltr-top .right { text-align: right; }
   .ltr-top .no { margin-bottom: 2px; }
+  .ltr-doc-meta {
+    margin-left: auto;
+    margin-bottom: 8px;
+    border-collapse: collapse;
+    font-size: 12pt;
+    line-height: 1.45;
+  }
+  .ltr-doc-meta td {
+    padding: 0;
+    vertical-align: baseline;
+    border: none;
+  }
+  .ltr-doc-meta .ltr-meta-label {
+    text-align: right;
+    white-space: nowrap;
+    padding-right: 0;
+  }
+  .ltr-doc-meta .ltr-meta-colon {
+    text-align: center;
+    width: 0.6em;
+    padding: 0 3px;
+    white-space: nowrap;
+  }
+  .ltr-doc-meta .ltr-meta-value {
+    text-align: left;
+    white-space: nowrap;
+  }
+  .ltr-meta-docno-blank {
+    display: inline-block;
+    min-width: 72px;
+    border-bottom: 1px dotted #999;
+    height: 14px;
+    padding: 0 3px;
+    vertical-align: baseline;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .ltr-meta-docno-suffix {
+    white-space: nowrap;
+    margin-left: 2px;
+  }
+  .ltr-meta-date-line {
+    display: inline-block;
+    min-width: 95px;
+    border-bottom: 1px dotted #999;
+    height: 14px;
+    vertical-align: baseline;
+  }
   .ltr-title {
     text-align: center; font-size: 14pt; font-weight: 700;
     margin: 8px 0 14px;
@@ -485,7 +597,8 @@
   .ltr-body { margin-top: 4px; margin-bottom: 8px; text-align: justify; text-indent: 28px; font-size: 12pt; line-height: 1.6; }
   .ltr-section-title {
     font-weight: 700;
-    margin: 12px 0 6px 28px;
+    margin: 12px 0 6px 0;
+    padding: 0;
     font-size: 12pt;
   }
   /* Letter tables — mirror APB_LoanResearch .apb-data-tbl (ຖານະການເງິນ) */
@@ -494,7 +607,7 @@
     width: 100%;
     max-width: 100%;
     margin: 4px 0;
-    font-size: 10pt;
+    font-size: 9pt;
     table-layout: fixed;
   }
   .ltr-table th,
@@ -511,10 +624,21 @@
     font-weight: 700;
     text-align: center;
     font-size: inherit;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.2;
   }
   .ltr-table td {
     border: 1px solid #888;
     vertical-align: top;
+    color: #000;
+  }
+  .ltr-table td,
+  .ltr-table th,
+  .ltr-table .r,
+  .ltr-table td.r,
+  .ltr-table th.r {
+    color: #000 !important;
   }
   .ltr-table .r,
   .ltr-table td.r,
@@ -537,7 +661,7 @@
   .ltr-table.tight-num .c,
   .ltr-table.tight-num td.c,
   .ltr-table.tight-num th.c {
-    font-size: 10pt !important;
+    font-size: 9pt !important;
     line-height: 1.3;
   }
   .ltr-table.tight-num .r,
@@ -546,6 +670,39 @@
     white-space: nowrap !important;
     font-family: 'Times New Roman', serif !important;
     font-variant-numeric: tabular-nums;
+  }
+  /* ມີອີງຕາມ — ກັນຕົວເລກທັບກັນ */
+  .letter-has-refs .ltr-table.apb-auto-fit-tbl th,
+  .letter-has-refs .ltr-table.apb-auto-fit-tbl td {
+    padding: 2px 3px;
+  }
+  .letter-has-refs .ltr-table .r,
+  .letter-has-refs .ltr-table td.r,
+  .letter-has-refs .ltr-table th.r {
+    overflow: hidden;
+    text-overflow: clip;
+  }
+  /* ບໍ່ມີອີງຕາມ — ຕາຕະລາງແບບໃໝ່ */
+  .letter-doc:not(.letter-has-refs) .ltr-table.apb-auto-fit-tbl th,
+  .letter-doc:not(.letter-has-refs) .ltr-table.apb-auto-fit-tbl td {
+    padding: 2px 3px;
+    line-height: 1.25;
+  }
+  .letter-doc:not(.letter-has-refs) .ltr-table .r,
+  .letter-doc:not(.letter-has-refs) .ltr-table td.r,
+  .letter-doc:not(.letter-has-refs) .ltr-table th.r {
+    overflow: hidden;
+  }
+  .letter-doc:not(.letter-has-refs) .ltr-table td.c,
+  .letter-doc:not(.letter-has-refs) .ltr-table th.c {
+    white-space: nowrap;
+  }
+  .letter-doc:not(.letter-has-refs) .ltr-table th,
+  .letter-doc:not(.letter-has-refs) .ltr-table td,
+  .letter-doc:not(.letter-has-refs) .ltr-table.tight-num th,
+  .letter-doc:not(.letter-has-refs) .ltr-table.tight-num td {
+    font-size: 9pt !important;
+    line-height: 1.25;
   }
   .ltr-table tfoot td {
     background: #f2f7f7;
@@ -918,6 +1075,25 @@
   <div class="card" id="cardPreview" style="display:none">
     <div class="card-head">👁 Preview ໜັງສື</div>
     <div class="card-body">
+      <div id="pageBreakPanel" class="page-break-panel" style="display:none;margin-bottom:16px;padding:14px 16px;background:var(--bg);border-radius:10px;border-left:3px solid var(--green)">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px">📄 ການແບ່ງໜ້າ (A4)</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+            <input type="radio" name="pageBreakMode" value="single" checked onchange="onPageBreakModeChange()">
+            <span>ໜ້າດຽວ — ບໍ່ແບ່ງໜ້າ</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+            <input type="radio" name="pageBreakMode" value="auto" onchange="onPageBreakModeChange()">
+            <span>ອັດຕະໂນມັດ — ເຕັມໜ້າແລ້ວຂຶ້ນໜ້າໃໝ່</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+            <input type="radio" name="pageBreakMode" value="manual" onchange="onPageBreakModeChange()">
+            <span>ເລືອກເອງ — ເລີ່ມໜ້າໃໝ່ກ່ອນລາຍການ:</span>
+          </label>
+        </div>
+        <div id="pageBreakChecks" style="display:none;margin:0 0 10px 24px;flex-direction:column;gap:6px"></div>
+        <div class="helper-text" style="font-size:12px;color:var(--mid)">ໜ້າດຽວ = ສະແດງທັງໝົດໃນ 1 ໜ້າ. ເລືອກເອງ: ຕິກຫຼາຍຈຸດໄດ້ ແລ້ວກົດ ອັບເດດ.</div>
+      </div>
       <div class="preview-wrap">
         <div id="letterPreview">
           <div class="empty-state">
@@ -1931,6 +2107,7 @@ function buildLetter() {
   const dueDate = document.getElementById('dueDate').value;
   const penCalcDate = document.getElementById('penCalcDate').value;
   const contracts = document.getElementById('contracts').value.split('\n').filter(x => x.trim());
+  const hasRefs = contracts.length > 0;
   const contactName = document.getElementById('contactName').value;
   const contactWa = document.getElementById('contactWa').value;
   const contactTel = document.getElementById('contactTel').value;
@@ -1939,7 +2116,9 @@ function buildLetter() {
   const prefix = document.getElementById('custPrefix').value;
 
   const suffix = docNoSuffixForSigner(signerRole);
-  const docNoFull = docNoRaw ? `${docNoRaw}/${suffix}` : `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/${suffix}`;
+  const docNoMetaHtml = docNoRaw
+    ? `<span class="ltr-meta-docno-blank">${docNoRaw}</span><span class="ltr-meta-docno-suffix">/${suffix}</span>`
+    : `<span class="ltr-meta-docno-blank" aria-hidden="true">&nbsp;</span><span class="ltr-meta-docno-suffix">/${suffix}</span>`;
 
   const displayName = prefix + (customer.nameLo || customer.name || 'ລູກຄ້າ');
 
@@ -1974,8 +2153,8 @@ function buildLetter() {
     const accruedHead = `ດອກເບ້ຍເກີດຂຶ້ນ<br>ໃນເດືອນ ${accruedPeriodLabel}`;
 
     const intMinCols = showUnpaidCol
-      ? '[28, 44, 88, 88, 52, 88, 88, 92]'
-      : '[28, 44, 88, 88, 52, 88, 92]';
+      ? '[22, 34, 0, 0, 32, 0, 0, 0]'
+      : '[22, 34, 0, 0, 32, 0, 0]';
 
     const thead = showUnpaidCol
       ? `<tr>
@@ -2019,7 +2198,7 @@ function buildLetter() {
           <td class="r">${limitStr}</td>
           <td class="r">${outStr}</td>
           <td class="c">${rateDisp}</td>
-          <td class="r" style="color:${r.unpaid>0?'#c0392b':'#888'}">${unpaidStr}</td>
+          <td class="r">${unpaidStr}</td>
           <td class="r">${accruedStr}</td>
           <td class="r" style="font-weight:600">${totalStr}</td>
         </tr>`;
@@ -2077,8 +2256,8 @@ function buildLetter() {
     let tP = 0, tPen = 0;
     const showPenCol = forceShowPenaltyCol || principalRows.some(r => (r.penalty||0) > 0);
     const prinMinCols = showPenCol
-      ? '[28, 44, 90, 90, 44, 72, 90, 90]'
-      : '[28, 44, 95, 95, 52, 80, 95]';
+      ? '[22, 34, 0, 0, 32, 48, 0, 0]'
+      : '[22, 34, 0, 0, 32, 48, 0]';
     const head = `<tr>
       <th>ລຳດັບ</th>
       <th>ສະກຸນ</th>
@@ -2102,7 +2281,7 @@ function buildLetter() {
         <td class="c">${r.installmentNo||''}</td>
         <td class="c">${fmtDateShort(r.dueDate)}</td>
         <td class="r">${amountStr}</td>
-        ${showPenCol?`<td class="r" style="color:${r.penalty>0?'#c0392b':'#888'}">${penStr}</td>`:''}
+        ${showPenCol?`<td class="r">${penStr}</td>`:''}
       </tr>`;
     }).join('');
     const footer = showPenCol
@@ -2149,86 +2328,590 @@ function buildLetter() {
     <div class="letter-header-wrap">
       <img src="${APB_HEADER_IMG}" style="width:100%;display:block" alt="APB Header">
     </div>
+    <div class="letter-page-body">
     <div class="letter-content-wrapper">
       <div class="page1-content">
-        <div style="text-align:right;font-size:12pt;margin-top:2px;margin-bottom:8px">
-          <div style="margin-bottom:2px">ເລກທີ: ${docNoFull}</div>
-          <div>ນະຄອນຫຼວງວຽງຈັນ, ວັນທີ <span style="display:inline-block;min-width:95px;border-bottom:1px dotted #999;height:14px">&nbsp;</span></div>
+        <div class="ltr-block" data-block-id="header">
+          <table class="ltr-doc-meta" role="presentation">
+            <tr>
+              <td class="ltr-meta-label">ເລກທີ</td>
+              <td class="ltr-meta-colon">:</td>
+              <td class="ltr-meta-value">${docNoMetaHtml}</td>
+            </tr>
+            <tr>
+              <td class="ltr-meta-label">ນະຄອນຫຼວງວຽງຈັນ, ວັນທີ</td>
+              <td class="ltr-meta-colon">:</td>
+              <td class="ltr-meta-value"><span class="ltr-meta-date-line">&nbsp;</span></td>
+            </tr>
+          </table>
+          <div class="ltr-title">${isThWang ? titleLao : `<span class="u">${titleLao}</span>`}</div>
+          <div class="ltr-to" style="margin-left:${BODY_INDENT}">ຮຽນ: ${displayName}, ທີ່ນັບຖື.</div>
+          <div class="ltr-re" style="margin-left:${BODY_INDENT}">ເລື່ອງ: ${subject}</div>
+          ${refLines ? `<div class="ltr-ref" style="padding-left:28px">${refLines}</div>` : ''}
+          <div class="ltr-body">${bodyIntro}</div>
         </div>
-        <div class="ltr-title">${isThWang ? titleLao : `<span class="u">${titleLao}</span>`}</div>
-        <div class="ltr-to" style="margin-left:${BODY_INDENT}">ຮຽນ: ${displayName}, ທີ່ນັບຖື.</div>
-        <div class="ltr-re" style="margin-left:${BODY_INDENT}">ເລື່ອງ: ${subject}</div>
-        ${refLines ? `<div class="ltr-ref" style="padding-left:28px">${refLines}</div>` : ''}
-        <div class="ltr-body">${bodyIntro}</div>
-        ${intTable}
-        ${prinTable}
-        ${note}
-        <div class="ltr-closing">${closing}</div>
-        <div style="display:flex;justify-content:flex-end;margin-top:14px">
-          <div style="display:inline-block;text-align:center">
-            <div style="font-size:12pt">ດ້ວຍຄວາມນັບຖືຢ່າງສູງ.</div>
-            <div style="font-size:12pt;font-weight:700;margin-top:4px">${signerLabel(signerRole)}</div>
-            <div style="width:180px;margin:48px auto 0"></div>
+        ${intTable ? `<div class="ltr-block" data-block-id="int-table">${intTable}</div>` : ''}
+        ${prinTable ? `<div class="ltr-block" data-block-id="prin-table">${prinTable}</div>` : ''}
+        ${note ? `<div class="ltr-block" data-block-id="note">${note}</div>` : ''}
+        <div class="ltr-block" data-block-id="closing">
+          <div class="ltr-closing">${closing}</div>
+          <div style="display:flex;justify-content:flex-end;margin-top:14px">
+            <div style="display:inline-block;text-align:center">
+              <div style="font-size:12pt">ດ້ວຍຄວາມນັບຖືຢ່າງສູງ.</div>
+              <div style="font-size:12pt;font-weight:700;margin-top:4px">${signerLabel(signerRole)}</div>
+              <div style="width:180px;margin:48px auto 0"></div>
+            </div>
           </div>
-        </div>
-        <div class="ltr-contact" style="border-top:none;margin-top:8px;font-size:8pt;color:#1a1a1a">
-          ${contactLine}
         </div>
       </div>
     </div>
-    <div class="letter-footer-wrap">
-      <img src="${APB_FOOTER_IMG}" alt="APB Footer">
+    </div>
+    <div class="letter-page-bottom">
+      <div class="letter-coordinator-wrap">
+        <div class="ltr-contact">${contactLine}</div>
+      </div>
+      <div class="letter-footer-wrap">
+        <img src="${APB_FOOTER_IMG}" alt="APB Footer">
+      </div>
     </div>
   `;
 
   return `
-    <div class="letter-doc" id="letterMain">
-      <div class="letter-page letter-page-1">${page1}</div>
+    <div class="letter-doc${hasRefs ? ' letter-has-refs' : ''}" id="letterMain">
+      <div class="letter-page letter-page-1 letter-page-last">${page1}</div>
     </div>
   `;
 }
 
-/** ວັດຄວາມກວ້າງແຕ່ລະຄໍລໍາແລ້ວຕັ້ງ % — ຄໍລໍາຕົວເລກ/ວັນທີແຄບ, ຄໍລໍາຈຳນວນເງິນຂະຫຍາຍຕາມເນື້ອຫາ (ຈາກ APB v7-4) */
+function hasLetterRefLines() {
+  const el = document.getElementById('contracts');
+  if (!el) return false;
+  return el.value.split('\n').some(line => line.trim());
+}
+
+let _letterMeasureSandbox = null;
+
+function getLetterMeasureSandbox() {
+  if (!_letterMeasureSandbox) {
+    _letterMeasureSandbox = document.createElement('div');
+    _letterMeasureSandbox.id = 'letterMeasureSandbox';
+    _letterMeasureSandbox.style.cssText = 'position:fixed;left:-12000px;top:0;width:794px;visibility:hidden;pointer-events:none;z-index:-1';
+    document.body.appendChild(_letterMeasureSandbox);
+  }
+  return _letterMeasureSandbox;
+}
+
+function getLetterTableMaxWidth(tbl) {
+  const page = tbl.closest('.letter-page') || tbl.closest('#letterPreview') || document.body;
+  const cs = getComputedStyle(page);
+  const padL = parseFloat(cs.paddingLeft) || 0;
+  const padR = parseFloat(cs.paddingRight) || 0;
+  return Math.max(320, page.clientWidth - padL - padR - 2);
+}
+
+let _tableMeasureSpan = null;
+function measureTableTextWidth(text, isHeader, fontPt) {
+  if (!_tableMeasureSpan) {
+    _tableMeasureSpan = document.createElement('span');
+    _tableMeasureSpan.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font-family:'Times New Roman',serif;font-variant-numeric:tabular-nums";
+    document.body.appendChild(_tableMeasureSpan);
+  }
+  const pt = fontPt || 9;
+  _tableMeasureSpan.style.fontSize = pt + 'pt';
+  _tableMeasureSpan.style.fontWeight = isHeader ? '700' : '400';
+  _tableMeasureSpan.textContent = (text || '').replace(/\s+/g, ' ').trim() || ' ';
+  return _tableMeasureSpan.offsetWidth + 8;
+}
+
+function detectNumericColumns(tbl) {
+  const headerRow = tbl.querySelector('thead tr');
+  if (!headerRow) return [];
+  const colCount = headerRow.children.length;
+  const isNumeric = new Array(colCount).fill(false);
+  tbl.querySelectorAll('tbody td.r, tfoot td.r').forEach(cell => {
+    if (cell.colSpan > 1) return;
+    const i = cell.cellIndex;
+    if (i >= 0 && i < colCount) isNumeric[i] = true;
+  });
+  return isNumeric;
+}
+
+/** ວັດຄວາມກວ້າງ — ຄໍລໍາຕົວເລກຈາກຂໍ້ມູນ, ຄໍລໍາຂໍ້ຄວາມ/ຫົວຂໍ້ບໍ່ຂະຫຍາຍເກີນ */
+function measureTableWidthsByPriority(tbl, fontPt) {
+  const headerRow = tbl.querySelector('thead tr');
+  if (!headerRow) return null;
+  const colCount = headerRow.children.length;
+  const isNumeric = detectNumericColumns(tbl);
+  const widths = new Array(colCount).fill(0);
+
+  tbl.querySelectorAll('tbody td.r, tfoot td.r').forEach(cell => {
+    if (cell.colSpan > 1) return;
+    const i = cell.cellIndex;
+    if (i < 0 || !isNumeric[i]) return;
+    const isBold = cell.style.fontWeight === '600' || cell.style.fontWeight === '700';
+    const w = measureTableTextWidth(cell.innerText, isBold, fontPt) + 6;
+    if (w > widths[i]) widths[i] = w;
+  });
+
+  tbl.querySelectorAll('thead th, tbody td, tfoot td').forEach(cell => {
+    if (cell.colSpan > 1) return;
+    const i = cell.cellIndex;
+    if (i < 0 || i >= colCount || isNumeric[i] || cell.classList.contains('r')) return;
+    const isHeader = cell.tagName === 'TH';
+    let w = measureTableTextWidth(cell.innerText, isHeader, fontPt);
+    if (isHeader) w = Math.min(w, 68);
+    if (w > widths[i]) widths[i] = w;
+  });
+
+  isNumeric.forEach((num, i) => {
+    if (num && widths[i] < 36) widths[i] = 36;
+  });
+
+  return { widths, isNumeric };
+}
+
+/** ຫຍໍ້ຄໍລໍາຂໍ້ຄວາມກ່ອນ — ຮັກສາຄວາມກວ້າງຄໍລໍາຕົວເລກ */
+function scaleTableWidthsToPage(widths, isNumeric, maxW, minPx) {
+  const w = widths.slice();
+  if (Array.isArray(minPx)) {
+    minPx.forEach((m, i) => {
+      if (m > 0 && !isNumeric[i] && w[i] < m) w[i] = m;
+    });
+  }
+
+  let sum = w.reduce((a, b) => a + b, 0);
+  if (sum <= maxW) return w;
+
+  const textIdx = [];
+  const numIdx = [];
+  w.forEach((_, i) => (isNumeric[i] ? numIdx : textIdx).push(i));
+  const numSum = numIdx.reduce((s, i) => s + w[i], 0);
+  const textBudget = maxW - numSum;
+
+  if (textBudget < 50) {
+    const scale = maxW / sum;
+    return w.map(x => x * scale);
+  }
+
+  const textSum = textIdx.reduce((s, i) => s + w[i], 0);
+  if (textSum > 0 && textBudget < textSum) {
+    const scale = textBudget / textSum;
+    textIdx.forEach(i => {
+      const floor = (Array.isArray(minPx) && minPx[i] > 0) ? minPx[i] : 16;
+      w[i] = Math.max(w[i] * scale, floor);
+    });
+  }
+
+  sum = w.reduce((a, b) => a + b, 0);
+  if (sum > maxW) {
+    const scale = maxW / sum;
+    return w.map(x => x * scale);
+  }
+  return w;
+}
+
+function applyTableColWidths(tbl, widths) {
+  let cg = tbl.querySelector('colgroup');
+  if (!cg) {
+    cg = document.createElement('colgroup');
+    tbl.insertBefore(cg, tbl.firstChild);
+  }
+  cg.innerHTML = '';
+  const sum = widths.reduce((a, b) => a + b, 0) || 1;
+  widths.forEach(w => {
+    const col = document.createElement('col');
+    col.style.width = ((w / sum) * 100).toFixed(2) + '%';
+    cg.appendChild(col);
+  });
+  tbl.style.tableLayout = 'fixed';
+  tbl.style.width = '100%';
+  tbl.style.maxWidth = '100%';
+}
+
+const LETTER_TABLE_FONT_PT = 9;
+
+function tableCellsOverflow(tbl) {
+  return [...tbl.querySelectorAll('tbody td.r, tfoot td.r')].some(
+    c => c.scrollWidth > c.clientWidth + 1
+  );
+}
+
+/** ວັດຄວາມກວ້າງ — ຢືດຢຸນຄໍລໍາຕົວເລກ, ຫຍໍ້ຫົວຂໍ້/ຂໍ້ຄວາມກ່ອນ */
+function fitSingleLetterTable(tbl) {
+  const cg0 = tbl.querySelector('colgroup');
+  if (cg0) cg0.remove();
+  tbl.style.tableLayout = 'auto';
+  tbl.style.width = '100%';
+  void tbl.offsetHeight;
+
+  const minPx = tbl.dataset.minCols ? JSON.parse(tbl.dataset.minCols) : null;
+  const maxW = getLetterTableMaxWidth(tbl);
+  const fontSteps = [LETTER_TABLE_FONT_PT, 8.5, 8];
+
+  for (const pt of fontSteps) {
+    tbl.style.fontSize = pt + 'pt';
+    const measured = measureTableWidthsByPriority(tbl, pt);
+    if (!measured) return;
+    const widths = scaleTableWidthsToPage(measured.widths, measured.isNumeric, maxW, minPx);
+    applyTableColWidths(tbl, widths);
+    void tbl.offsetHeight;
+    if (!tableCellsOverflow(tbl)) return;
+  }
+}
+
 function fitAutoWidthTables(rootEl) {
   if (!rootEl) return;
-  rootEl.querySelectorAll('table.apb-auto-fit-tbl').forEach(tbl => {
-    const headerRow = tbl.querySelector('thead tr');
-    if (!headerRow) return;
-    const colCount = headerRow.children.length;
-    const widths = new Array(colCount).fill(0);
-    const minPx = tbl.dataset.minCols ? JSON.parse(tbl.dataset.minCols) : null;
+  rootEl.querySelectorAll('table.apb-auto-fit-tbl').forEach(tbl => fitSingleLetterTable(tbl));
+}
 
-    tbl.querySelectorAll('tr').forEach(tr => {
-      Array.from(tr.children).forEach(cell => {
-        if (cell.colSpan > 1) return;
-        const i = cell.cellIndex;
-        if (i < 0 || i >= colCount) return;
-        const w = cell.getBoundingClientRect().width;
-        if (w > widths[i]) widths[i] = w;
-      });
-    });
+function usesLegacyLetterTables(rootEl) {
+  if (rootEl && rootEl.querySelector && rootEl.querySelector('.letter-has-refs')) return true;
+  if (rootEl && rootEl.classList && rootEl.classList.contains('letter-has-refs')) return true;
+  return hasLetterRefLines();
+}
 
-    if (Array.isArray(minPx)) {
-      minPx.forEach((m, i) => {
-        if (m > 0 && widths[i] < m) widths[i] = m;
-      });
+const LETTER_BLOCK_LABELS = {
+  'header': 'ສ່ວນຫົວໜັງສື (ເລກທີ, ຮຽນ, ເລື່ອງ, ອີງຕາມ, ເນື້ອຫາ)',
+  'int-table': '1. ການຊຳລະດອກເບ້ຍ (ຕາຕະລາງ)',
+  'prin-table': '2. ການຊຳລະຕົ້ນທຶນ (ຕາຕະລາງ)',
+  'note': 'ໝາຍເຫດ',
+  'closing': 'ຂໍ້ຄວາມປິດທ້າຍ / ລາຍເຊັນ'
+};
+
+function extractLetterContentBlocks(contentEl) {
+  const blocks = [];
+  const kids = [...contentEl.children];
+  for (let i = 0; i < kids.length; i++) {
+    const el = kids[i];
+    if (el.classList.contains('ltr-block') && el.dataset.blockId) {
+      blocks.push({ type: 'block', id: el.dataset.blockId, el: el.cloneNode(true) });
+      continue;
     }
-
-    let cg = tbl.querySelector('colgroup');
-    if (!cg) {
-      cg = document.createElement('colgroup');
-      tbl.insertBefore(cg, tbl.firstChild);
+    if (el.classList.contains('ltr-section-title') && i + 1 < kids.length && kids[i + 1].tagName === 'TABLE') {
+      blocks.push({ type: 'section-table', id: 'table-' + i, title: el.cloneNode(true), table: kids[i + 1].cloneNode(true) });
+      i++;
+    } else if (el.tagName === 'TABLE') {
+      blocks.push({ type: 'table', id: 'table-' + i, table: el.cloneNode(true) });
+    } else {
+      blocks.push({ type: 'element', id: 'el-' + i, el: el.cloneNode(true) });
     }
-    cg.innerHTML = '';
-    const sum = widths.reduce((a, b) => a + b, 0) || 1;
-    widths.forEach(w => {
-      const col = document.createElement('col');
-      col.style.width = ((w / sum) * 100).toFixed(2) + '%';
-      cg.appendChild(col);
-    });
-    tbl.style.tableLayout = 'fixed';
-    tbl.style.width = '100%';
+  }
+  return blocks;
+}
+
+function blockToHtml(block) {
+  if (block.type === 'block') return block.el.outerHTML;
+  if (block.type === 'section-table') {
+    return (block.title ? block.title.outerHTML : '') + block.table.outerHTML;
+  }
+  if (block.type === 'table') return block.table.outerHTML;
+  return block.el.outerHTML;
+}
+
+function expandBlocksToPieces(blocks) {
+  return blocks.map(block => ({
+    id: block.id || '',
+    html: blockToHtml(block),
+    isTable: block.type === 'section-table' || block.type === 'table' || block.id === 'int-table' || block.id === 'prin-table'
+  }));
+}
+
+function getPageBreakSettings() {
+  const mode = document.querySelector('input[name="pageBreakMode"]:checked')?.value || 'single';
+  const breaks = [];
+  document.querySelectorAll('#pageBreakChecks input[type="checkbox"]:checked').forEach(cb => {
+    breaks.push(cb.value);
   });
+  return { mode, breaks };
+}
+
+function onPageBreakModeChange() {
+  const mode = document.querySelector('input[name="pageBreakMode"]:checked')?.value || 'single';
+  const box = document.getElementById('pageBreakChecks');
+  if (box) box.style.display = mode === 'manual' ? 'flex' : 'none';
+  generatePreview();
+}
+
+function refreshPageBreakOptions() {
+  const panel = document.getElementById('pageBreakPanel');
+  const box = document.getElementById('pageBreakChecks');
+  if (!panel || !box) return;
+
+  const content = document.querySelector('#letterMain .page1-content')
+    || document.querySelector('#letterPreview .page1-content');
+  if (!content) return;
+
+  const blocks = extractLetterContentBlocks(content);
+  const breakable = blocks.filter(b => b.id && b.id !== 'header');
+  if (!breakable.length) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  const saved = new Set();
+  document.querySelectorAll('#pageBreakChecks input:checked').forEach(cb => saved.add(cb.value));
+
+  box.innerHTML = breakable.map(b => {
+    const label = LETTER_BLOCK_LABELS[b.id] || b.id;
+    const checked = saved.has(b.id) ? ' checked' : '';
+    return `<label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12.5px">
+      <input type="checkbox" value="${b.id}"${checked} onchange="generatePreview()" style="margin-top:3px">
+      <span>ແບ່ງໜ້າກ່ອນ: <b>${label}</b></span>
+    </label>`;
+  }).join('');
+
+  const manual = document.querySelector('input[name="pageBreakMode"][value="manual"]')?.checked;
+  box.style.display = manual ? 'flex' : 'none';
+}
+
+let _letterChromeCache = null;
+
+function getLetterChrome(headerHtml, footerHtml, coordinatorHtml) {
+  if (_letterChromeCache) return _letterChromeCache;
+  const sandbox = getLetterMeasureSandbox();
+  sandbox.innerHTML = `<div style="width:794px">${headerHtml}</div>`;
+  const headerH = sandbox.querySelector('.letter-header-wrap')?.offsetHeight || 130;
+  sandbox.innerHTML = `<div style="width:794px">${footerHtml}</div>`;
+  const footerH = sandbox.querySelector('.letter-footer-wrap')?.offsetHeight || 65;
+  let coordinatorH = 0;
+  if (coordinatorHtml) {
+    sandbox.innerHTML = `<div style="width:794px;font-family:'Phetsarath OT',serif;font-size:8pt">${coordinatorHtml}</div>`;
+    coordinatorH = sandbox.querySelector('.letter-coordinator-wrap')?.offsetHeight || 36;
+  }
+  _letterChromeCache = {
+    pageH: 1122,
+    padTB: 152,
+    padLR: 0,
+    headerH,
+    footerH,
+    coordinatorH,
+    wrapFirst: 76,
+    wrapCont: 30,
+    padMid: 12
+  };
+  return _letterChromeCache;
+}
+
+function applyLetterChromeVars(mainEl, headerHtml, footerHtml, coordinatorHtml) {
+  if (!mainEl) return;
+  _letterChromeCache = null;
+  const c = getLetterChrome(headerHtml, footerHtml, coordinatorHtml);
+  mainEl.style.setProperty('--letter-footer-h', c.footerH + 'px');
+  mainEl.style.setProperty('--letter-coord-h', c.coordinatorH + 'px');
+  mainEl.style.setProperty('--letter-bottom-stack-h', (c.footerH + c.coordinatorH) + 'px');
+}
+
+function pageContentBudget(isFirst, isLast, headerHtml, footerHtml, coordinatorHtml) {
+  const c = getLetterChrome(headerHtml, footerHtml, coordinatorHtml);
+  let h = c.pageH - c.padTB - (isFirst ? c.wrapFirst : c.wrapCont) - c.footerH;
+  if (isFirst) h -= c.headerH;
+  if (isLast) h -= c.coordinatorH + 10;
+  else h -= c.padMid;
+  return Math.floor(h);
+}
+
+function measureLetterContentHeight(htmlParts, isFirst, isLast, headerHtml, footerHtml, coordinatorHtml) {
+  const sandbox = getLetterMeasureSandbox();
+  const wrapPad = isFirst ? '20mm' : '8mm';
+  const coordPart = isLast && coordinatorHtml ? coordinatorHtml : '';
+  const bodyPad = 'padding-bottom:var(--letter-footer-h,72px)';
+  const stackPad = isLast && coordinatorHtml
+    ? 'padding-bottom:calc(var(--letter-footer-h,72px) + var(--letter-coord-h,32px))'
+    : bodyPad;
+  const bottomStack = `<div class="letter-page-bottom" style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column">${coordPart}${footerHtml}</div>`;
+  sandbox.innerHTML = `<div class="letter-page" style="width:794px;height:1122px;box-sizing:border-box;padding:2cm 2cm 2cm 3cm;position:relative;font-family:'Phetsarath OT',serif;font-size:12pt;overflow:hidden">${isFirst ? headerHtml : ''}<div class="letter-page-body" style="display:flex;flex-direction:column;${stackPad}"><div class="letter-content-wrapper" style="padding-top:${wrapPad}"><div class="page1-content">${htmlParts.join('')}</div></div></div>${bottomStack}</div>`;
+  const content = sandbox.querySelector('.page1-content');
+  return content ? content.scrollHeight : 0;
+}
+
+function splitTablePieceByRows(piece, budget, isFirst, isLast, headerHtml, footerHtml, coordinatorHtml) {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = piece.html;
+  const table = wrap.querySelector('table');
+  if (!table) return [piece];
+  const titleEl = wrap.querySelector('.ltr-section-title');
+  const tbody = table.querySelector('tbody');
+  if (!tbody || tbody.rows.length <= 1) return [piece];
+
+  const thead = table.querySelector('thead');
+  const tfoot = table.querySelector('tfoot');
+  const rows = [...tbody.rows];
+  const out = [];
+  let batch = [];
+  let showTitle = titleEl;
+
+  function buildHtml(rowList, withFoot) {
+    const tbl = table.cloneNode(false);
+    tbl.className = table.className;
+    if (table.dataset.minCols) tbl.dataset.minCols = table.dataset.minCols;
+    if (thead) tbl.appendChild(thead.cloneNode(true));
+    const nb = document.createElement('tbody');
+    rowList.forEach(r => nb.appendChild(r.cloneNode(true)));
+    tbl.appendChild(nb);
+    if (withFoot && tfoot) tbl.appendChild(tfoot.cloneNode(true));
+    return (showTitle ? showTitle.outerHTML : '') + tbl.outerHTML;
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    batch.push(rows[i]);
+    const tryHtml = buildHtml(batch, i === rows.length - 1);
+    const h = measureLetterContentHeight([tryHtml], isFirst, isLast, headerHtml, footerHtml, coordinatorHtml);
+    if (h > budget && batch.length > 1) {
+      out.push({ html: buildHtml(batch.slice(0, -1), false), isTable: true });
+      batch = [rows[i]];
+      showTitle = null;
+    }
+  }
+  if (batch.length) out.push({ html: buildHtml(batch, true), isTable: true });
+  return out.length ? out : [piece];
+}
+
+function renderLetterPages(mainEl, pages, headerHtml, footerHtml, coordinatorHtml) {
+  pages.forEach((p, idx) => {
+    p.isFirst = idx === 0;
+    p.isLast = idx === pages.length - 1;
+  });
+  if (pages.length <= 1) {
+    applyLetterChromeVars(mainEl, headerHtml, footerHtml, coordinatorHtml);
+    return;
+  }
+  mainEl.innerHTML = pages.map(p => `
+    <div class="letter-page${p.isFirst ? ' letter-page-1' : ' letter-page-cont'}${p.isLast ? ' letter-page-last' : ''}">
+      ${p.isFirst ? headerHtml : ''}
+      <div class="letter-page-body">
+        <div class="letter-content-wrapper">
+          <div class="page1-content">${p.html}</div>
+        </div>
+      </div>
+      <div class="letter-page-bottom">
+        ${p.isLast ? (coordinatorHtml || '') : ''}
+        ${footerHtml}
+      </div>
+    </div>
+  `).join('');
+  applyLetterChromeVars(mainEl, headerHtml, footerHtml, coordinatorHtml);
+}
+
+/** ແບ່ງໜ້າຕາມຈຸດທີ່ຜູ້ໃຊ້ເລືອກ */
+function paginateLetterPagesManual(mainEl, pieces, breakIds, headerHtml, footerHtml, coordinatorHtml) {
+  const breakSet = new Set(breakIds || []);
+  if (!breakSet.size) return;
+
+  const pages = [];
+  let current = [];
+  let pageIsFirst = true;
+
+  for (const piece of pieces) {
+    if (breakSet.has(piece.id) && current.length) {
+      pages.push({ html: current.join(''), isFirst: pageIsFirst, isLast: false });
+      current = [];
+      pageIsFirst = false;
+    }
+    current.push(piece.html);
+  }
+  if (current.length) pages.push({ html: current.join(''), isFirst: pageIsFirst, isLast: true });
+  renderLetterPages(mainEl, pages, headerHtml, footerHtml, coordinatorHtml);
+}
+
+/** ແບ່ງໜ້າ A4 — ອັດຕະໂນມັດ ຫຼື ເລືອກເອງ */
+function paginateLetterPages(mainEl, settings) {
+  if (!mainEl) return;
+  const firstPage = mainEl.querySelector('.letter-page');
+  if (!firstPage) return;
+  const contentSource = firstPage.querySelector('.page1-content');
+  if (!contentSource) return;
+
+  settings = settings || getPageBreakSettings();
+  _letterChromeCache = null;
+  const headerHtml = firstPage.querySelector('.letter-header-wrap')?.outerHTML || '';
+  const footerHtml = firstPage.querySelector('.letter-footer-wrap')?.outerHTML || '';
+  const coordinatorHtml = firstPage.querySelector('.letter-coordinator-wrap')?.outerHTML || '';
+
+  if (settings.mode === 'single') {
+    applyLetterChromeVars(mainEl, headerHtml, footerHtml, coordinatorHtml);
+    return;
+  }
+
+  const pieces = expandBlocksToPieces(extractLetterContentBlocks(contentSource));
+  if (!pieces.length) return;
+
+  if (settings.mode === 'manual' && settings.breaks && settings.breaks.length) {
+    paginateLetterPagesManual(mainEl, pieces, settings.breaks, headerHtml, footerHtml, coordinatorHtml);
+    return;
+  }
+
+  const SLACK = 24;
+  const singlePageH = measureLetterContentHeight(pieces.map(p => p.html), true, true, headerHtml, footerHtml, coordinatorHtml);
+  const singleBudget = pageContentBudget(true, true, headerHtml, footerHtml, coordinatorHtml);
+  if (singlePageH <= singleBudget + SLACK) {
+    applyLetterChromeVars(mainEl, headerHtml, footerHtml, coordinatorHtml);
+    return;
+  }
+
+  const pages = [];
+  let current = [];
+  let pageIsFirst = true;
+
+  function flushPage(isLast) {
+    if (!current.length) return;
+    pages.push({ html: current.join(''), isFirst: pageIsFirst, isLast });
+    current = [];
+    pageIsFirst = false;
+  }
+
+  for (let i = 0; i < pieces.length; i++) {
+    let piece = pieces[i];
+    const budget = pageContentBudget(pageIsFirst, false, headerHtml, footerHtml, coordinatorHtml);
+    let tryParts = [...current, piece.html];
+    let h = measureLetterContentHeight(tryParts, pageIsFirst, false, headerHtml, footerHtml, coordinatorHtml);
+
+    if (h > budget + SLACK && piece.isTable && current.length === 0) {
+      const split = splitTablePieceByRows(piece, budget, pageIsFirst, false, headerHtml, footerHtml, coordinatorHtml);
+      if (split.length > 1) {
+        pieces.splice(i, 1, ...split);
+        piece = pieces[i];
+        tryParts = [piece.html];
+        h = measureLetterContentHeight(tryParts, pageIsFirst, false, headerHtml, footerHtml, coordinatorHtml);
+      }
+    }
+
+    if (h > budget + SLACK && current.length > 0) {
+      flushPage(false);
+      const budget2 = pageContentBudget(pageIsFirst, false, headerHtml, footerHtml, coordinatorHtml);
+      h = measureLetterContentHeight([piece.html], pageIsFirst, false, headerHtml, footerHtml, coordinatorHtml);
+      if (h > budget2 + SLACK && piece.isTable) {
+        const split = splitTablePieceByRows(piece, budget2, pageIsFirst, false, headerHtml, footerHtml, coordinatorHtml);
+        if (split.length > 1) {
+          pieces.splice(i, 1, ...split);
+          piece = pieces[i];
+          h = measureLetterContentHeight([piece.html], pageIsFirst, false, headerHtml, footerHtml, coordinatorHtml);
+        }
+      }
+      current.push(piece.html);
+    } else {
+      current.push(piece.html);
+    }
+  }
+
+  if (current.length) flushPage(true);
+  renderLetterPages(mainEl, pages, headerHtml, footerHtml, coordinatorHtml);
+}
+
+function layoutLetterPreview(rootEl) {
+  if (!rootEl) return;
+  const mainEl = rootEl.querySelector('#letterMain') || rootEl.querySelector('.letter-doc') || rootEl;
+  const pageSettings = getPageBreakSettings();
+  _letterChromeCache = null;
+
+  const fitTables = () => {
+    fitAutoWidthTables(mainEl);
+    normalizeLetterNoColumnWidths(mainEl);
+  };
+
+  fitTables();
+  paginateLetterPages(mainEl, pageSettings);
+  fitTables();
 }
 
 function normalizeLetterNoColumnWidths(rootEl) {
@@ -2253,9 +2936,9 @@ function normalizeLetterNoColumnWidths(rootEl) {
 
 function generatePreview() {
   document.getElementById('letterPreview').innerHTML = buildLetter();
+  refreshPageBreakOptions();
   const preview = document.getElementById('letterPreview');
-  fitAutoWidthTables(preview);
-  normalizeLetterNoColumnWidths(preview);
+  layoutLetterPreview(preview);
   document.getElementById('cardPreview').style.display = 'block';
   setStep(4);
   document.getElementById('cardPreview').scrollIntoView({ behavior: 'smooth' });
@@ -2292,8 +2975,7 @@ async function downloadPDF() {
     wrapper.style.cssText = 'position:fixed;left:-20000px;top:0;width:794px;background:#fff';
     document.body.appendChild(wrapper);
     try {
-      fitAutoWidthTables(wrapper);
-      normalizeLetterNoColumnWidths(wrapper);
+      layoutLetterPreview(wrapper);
 
       const custName = (customer.nameLo || customer.name || 'customer').replace(/\s+/g,'_').slice(0,30);
       const month = (document.getElementById('noticeMonth').value || '').replace('/','_');
@@ -2323,11 +3005,13 @@ async function downloadPDF() {
 }
 
 function printLetter() {
+  const preview = document.getElementById('letterPreview');
   const srcEl = document.getElementById('letterMain');
   if (!srcEl) {
     showToast('ກະລຸນາສ້າງ Preview ກ່ອນ', 'error');
     return;
   }
+  if (preview) layoutLetterPreview(preview);
 
   const printWin = window.open('', '_blank');
   if (!printWin) {
@@ -2374,6 +3058,9 @@ function printLetter() {
       page-break-after: auto !important;
       break-after: auto !important;
     }
+    #letterMain .letter-page-cont .letter-content-wrapper { padding-top: 8mm !important; }
+    #letterMain .letter-page-cont .page1-content { padding-bottom: 8mm !important; }
+    #letterMain .letter-page-last .page1-content { padding-bottom: 26mm !important; }
   </style>
 </head>
 <body>
