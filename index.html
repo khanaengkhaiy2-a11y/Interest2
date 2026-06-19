@@ -649,6 +649,24 @@
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
+  .ltr-table th.ltr-col-rate {
+    word-break: keep-all;
+    overflow-wrap: normal;
+    line-height: 1.15;
+  }
+  .ltr-table th .ltr-th-nowrap,
+  .ltr-table td.ltr-col-rate {
+    white-space: nowrap;
+  }
+  .ltr-table th.ltr-col-currency,
+  .ltr-table td.ltr-col-currency {
+    white-space: nowrap;
+    word-break: keep-all;
+  }
+  .ltr-table th.ltr-col-no,
+  .ltr-table td.ltr-col-no {
+    white-space: nowrap;
+  }
   .ltr-table .c,
   .ltr-table td.c,
   .ltr-table th.c {
@@ -726,7 +744,7 @@
   .ltr-closing-follow {
     text-align: justify;
     margin-left: calc(3.7cm - var(--page-margin-left));
-    margin-top: 1.6em;
+    margin-top: 0.8em;
   }
   .ltr-sig {
     display: flex; justify-content: flex-end; margin-top: 18px;
@@ -2160,26 +2178,26 @@ function buildLetter() {
     const accruedHead = `ດອກເບ້ຍເກີດຂຶ້ນ<br>ໃນເດືອນ ${accruedPeriodLabel}`;
 
     const intMinCols = showUnpaidCol
-      ? '[22, 34, 0, 0, 32, 0, 0, 0]'
-      : '[22, 34, 0, 0, 32, 0, 0]';
+      ? '[42, 0, 0, 0, 48, 0, 0, 0]'
+      : '[42, 0, 0, 0, 48, 0, 0]';
 
     const thead = showUnpaidCol
       ? `<tr>
-          <th>ລຳດັບ</th>
-          <th>ສະກຸນເງິນ</th>
+          <th class="ltr-col-no">ລຳດັບ</th>
+          <th class="ltr-col-currency">ສະກຸນ<br>ເງິນ</th>
           <th>ວົງເງິນອະນຸມັດ</th>
           <th>ຍອດເຫຼືອຕົ້ນທຶນ</th>
-          <th>ອັດຕາ<br>ດອກເບ້ຍ</th>
+          <th class="ltr-col-rate">ອັດຕາ<br><span class="ltr-th-nowrap">ດອກເບ້ຍ</span></th>
           <th>${unpaidHead}</th>
           <th>${accruedHead}</th>
           <th>ລວມດອກເບ້ຍທີ່ຕ້ອງ<br>ຊຳລະຕາມງວດ</th>
         </tr>`
       : `<tr>
-          <th>ລຳດັບ</th>
-          <th>ສະກຸນເງິນ</th>
+          <th class="ltr-col-no">ລຳດັບ</th>
+          <th class="ltr-col-currency">ສະກຸນ<br>ເງິນ</th>
           <th>ວົງເງິນອະນຸມັດ</th>
           <th>ຍອດເຫຼືອຕົ້ນທຶນ</th>
-          <th>ອັດຕາ<br>ດອກເບ້ຍ</th>
+          <th class="ltr-col-rate">ອັດຕາ<br><span class="ltr-th-nowrap">ດອກເບ້ຍ</span></th>
           <th>${accruedHead}</th>
           <th>ລວມດອກເບ້ຍທີ່ຕ້ອງ<br>ຊຳລະຕາມງວດ</th>
         </tr>`;
@@ -2200,22 +2218,22 @@ function buildLetter() {
       const totalStr = fmt(rowTotal);
       if (showUnpaidCol) {
         return `<tr>
-          <td class="c">${i+1}</td>
-          <td class="c">${r.currency}</td>
+          <td class="c ltr-col-no">${i+1}</td>
+          <td class="c ltr-col-currency">${r.currency}</td>
           <td class="r">${limitStr}</td>
           <td class="r">${outStr}</td>
-          <td class="c">${rateDisp}</td>
+          <td class="c ltr-col-rate">${rateDisp}</td>
           <td class="r">${unpaidStr}</td>
           <td class="r">${accruedStr}</td>
           <td class="r" style="font-weight:600">${totalStr}</td>
         </tr>`;
       } else {
         return `<tr>
-          <td class="c">${i+1}</td>
-          <td class="c">${r.currency}</td>
+          <td class="c ltr-col-no">${i+1}</td>
+          <td class="c ltr-col-currency">${r.currency}</td>
           <td class="r">${limitStr}</td>
           <td class="r">${outStr}</td>
-          <td class="c">${rateDisp}</td>
+          <td class="c ltr-col-rate">${rateDisp}</td>
           <td class="r">${accruedStr}</td>
           <td class="r" style="font-weight:600">${totalStr}</td>
         </tr>`;
@@ -2263,11 +2281,11 @@ function buildLetter() {
     let tP = 0, tPen = 0;
     const showPenCol = forceShowPenaltyCol || principalRows.some(r => (r.penalty||0) > 0);
     const prinMinCols = showPenCol
-      ? '[22, 34, 0, 0, 32, 48, 0, 0]'
-      : '[22, 34, 0, 0, 32, 48, 0]';
+      ? '[42, 0, 0, 0, 32, 48, 0, 0]'
+      : '[42, 0, 0, 0, 32, 48, 0]';
     const head = `<tr>
-      <th>ລຳດັບ</th>
-      <th>ສະກຸນ</th>
+      <th class="ltr-col-no">ລຳດັບ</th>
+      <th class="ltr-col-currency">ສະກຸນ</th>
       <th>ວົງເງິນອະນຸມັດ</th>
       <th>ຍອດເຫຼືອຕົ້ນທຶນ</th>
       <th>ງວດທີ</th>
@@ -2281,8 +2299,8 @@ function buildLetter() {
       const amountStr = fmt0(r.amount);
       const penStr = r.penalty ? fmt(r.penalty) : '-';
       return `<tr>
-        <td class="c">${i+1}</td>
-        <td class="c">${r.currency}</td>
+        <td class="c ltr-col-no">${i+1}</td>
+        <td class="c ltr-col-currency">${r.currency}</td>
         <td class="r">${limitStr}</td>
         <td class="r">${outStr}</td>
         <td class="c">${r.installmentNo||''}</td>
@@ -2431,6 +2449,20 @@ function measureTableTextWidth(text, isHeader, fontPt) {
   return _tableMeasureSpan.offsetWidth + 8;
 }
 
+function measureTableHeaderCellWidth(cell, fontPt) {
+  if (!cell || cell.tagName !== 'TH') return 0;
+  const html = cell.innerHTML || '';
+  if (/<br/i.test(html)) {
+    const lines = html.split(/<br\s*\/?>/i).map(part =>
+      part.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+    ).filter(Boolean);
+    if (lines.length) {
+      return Math.max(...lines.map(line => measureTableTextWidth(line, true, fontPt)));
+    }
+  }
+  return measureTableTextWidth(cell.innerText, true, fontPt);
+}
+
 function detectNumericColumns(tbl) {
   const headerRow = tbl.querySelector('thead tr');
   if (!headerRow) return [];
@@ -2466,8 +2498,38 @@ function measureTableWidthsByPriority(tbl, fontPt) {
     const i = cell.cellIndex;
     if (i < 0 || i >= colCount || isNumeric[i] || cell.classList.contains('r')) return;
     const isHeader = cell.tagName === 'TH';
-    let w = measureTableTextWidth(cell.innerText, isHeader, fontPt);
-    if (isHeader) w = Math.min(w, 68);
+    let w = isHeader ? measureTableHeaderCellWidth(cell, fontPt) : measureTableTextWidth(cell.innerText, false, fontPt);
+    if (isHeader && !cell.classList.contains('ltr-col-currency')) {
+      w = Math.min(w, 72);
+    }
+    if (w > widths[i]) widths[i] = w;
+  });
+
+  headerRow.querySelectorAll('th.ltr-col-currency').forEach(th => {
+    const i = th.cellIndex;
+    if (i < 0) return;
+    let bodyMax = 0;
+    tbl.querySelectorAll('tbody tr').forEach(tr => {
+      const td = tr.children[i];
+      if (!td) return;
+      const w = measureTableTextWidth(td.innerText, false, fontPt) + 4;
+      if (w > bodyMax) bodyMax = w;
+    });
+    const headerW = measureTableHeaderCellWidth(th, fontPt);
+    widths[i] = Math.max(bodyMax, Math.min(headerW, bodyMax + 6), 24);
+  });
+
+  headerRow.querySelectorAll('th.ltr-col-rate').forEach(th => {
+    const i = th.cellIndex;
+    if (i < 0) return;
+    const w = measureTableHeaderCellWidth(th, fontPt);
+    if (w > widths[i]) widths[i] = w;
+  });
+
+  headerRow.querySelectorAll('th.ltr-col-no').forEach(th => {
+    const i = th.cellIndex;
+    if (i < 0) return;
+    const w = measureTableHeaderCellWidth(th, fontPt);
     if (w > widths[i]) widths[i] = w;
   });
 
@@ -2929,11 +2991,29 @@ function normalizeLetterNoColumnWidths(rootEl) {
     if (!firstHeadCell) return;
     const headText = (firstHeadCell.textContent || '').replace(/\s+/g, '');
     if (!headText.includes('ລຳດັບ') && !headText.includes('ລ/ດ')) return;
+
+    const maxW = getLetterTableMaxWidth(tbl);
+    const noPx = Math.max(
+      measureTableHeaderCellWidth(firstHeadCell, LETTER_TABLE_FONT_PT),
+      42
+    );
+    const cg = tbl.querySelector('colgroup');
+    if (cg && cg.children.length > 1) {
+      const cols = [...cg.children];
+      const restPx = Math.max(120, maxW - noPx);
+      const restSum = cols.slice(1).reduce((s, col) => s + (parseFloat(col.style.width) || 0), 0) || (cols.length - 1);
+      cols[0].style.width = ((noPx / maxW) * 100).toFixed(2) + '%';
+      cols.slice(1).forEach(col => {
+        const share = (parseFloat(col.style.width) || (100 / cols.length)) / restSum;
+        col.style.width = ((share * restPx / maxW) * 100).toFixed(2) + '%';
+      });
+    }
+
     const setNoColStyle = cell => {
       if (!cell) return;
-      cell.style.width = '9mm';
-      cell.style.minWidth = '9mm';
-      cell.style.maxWidth = '9mm';
+      cell.style.width = noPx + 'px';
+      cell.style.minWidth = noPx + 'px';
+      cell.style.maxWidth = noPx + 'px';
       cell.style.whiteSpace = 'nowrap';
       cell.style.textAlign = 'center';
     };
