@@ -590,11 +590,12 @@
     letter-spacing: 0.5px;
   }
   .ltr-title .u { border-bottom: 1.5px solid #1a1a1a; padding-bottom: 2px; }
+  .ltr-to, .ltr-re { margin-left: calc(4.8cm - var(--page-margin-left)); }
   .ltr-to { margin-top: 0; margin-bottom: 0; font-size: 12pt; line-height: 1.35; font-weight: 700; }
   .ltr-re { margin-top: 0; margin-bottom: 12px; font-size: 12pt; line-height: 1.35; font-weight: 700; }
   .ltr-ref { font-size: 12pt; margin-bottom: 8px; line-height: 1.7; }
   .ltr-ref div { padding-left: 4px; }
-  .ltr-body { margin-top: 4px; margin-bottom: 8px; text-align: justify; text-indent: 28px; font-size: 12pt; line-height: 1.6; }
+  .ltr-body { margin-top: 4px; margin-bottom: 8px; text-align: justify; text-indent: calc(4.1cm - var(--page-margin-left)); font-size: 12pt; line-height: 1.6; }
   .ltr-section-title {
     font-weight: 700;
     margin: 12px 0 6px 0;
@@ -720,7 +721,13 @@
     text-indent: 28px;
   }
   .ltr-note.penalty { background: none; border: none; }
-  .ltr-closing { margin: 8px 0; text-align: justify; text-indent: 28px; font-size: 12pt; line-height: 1.6; }
+  .ltr-closing { margin: 8px 0; font-size: 12pt; line-height: 1.6; }
+  .ltr-closing-lead { text-align: justify; text-indent: 28px; }
+  .ltr-closing-follow {
+    text-align: justify;
+    margin-left: calc(3.7cm - var(--page-margin-left));
+    margin-top: 1.6em;
+  }
   .ltr-sig {
     display: flex; justify-content: flex-end; margin-top: 18px;
     padding-right: 40px;
@@ -2309,16 +2316,17 @@ function buildLetter() {
   }
 
   // Closing — standard APB template wording
-  let closing;
+  const closingFollow = 'ດັ່ງນັ້ນ, ຈຶ່ງແຈ້ງມາຍັງທ່ານເພື່ອຊາບ ແລະ ຫວັງວ່າຈະປະຕິບັດຕາມເນື້ອໃນຂ້າງເທິງດ້ວຍ.';
+  let closingLead;
   if (letterType === 'combo' || letterType === 'principal') {
-    closing = `ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະຕົ້ນທຶນ ແລະ ດອກເບ້ຍ${dueDate?` ກ່ອນວັນທີ <b>${fmtDateShort(dueDate)}</b>`:''}, ດັ່ງນັ້ນ, ຈຶ່ງແຈ້ງມາຍັງທ່ານເພື່ອຊາບ ແລະ ຫວັງວ່າຈະປະຕິບັດຕາມເນື້ອໃນຂ້າງເທິງດ້ວຍ.`;
+    closingLead = `ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະຕົ້ນທຶນ ແລະ ດອກເບ້ຍ${dueDate?` ກ່ອນວັນທີ <b>${fmtDateShort(dueDate)}</b>`:''}.`;
   } else {
-    closing = `ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະດອກເບ້ຍ${dueDate?` ກ່ອນວັນທີ <b>${fmtDateShort(dueDate)}</b>`:''}, ດັ່ງນັ້ນ, ຈຶ່ງແຈ້ງມາຍັງທ່ານເພື່ອຊາບ ແລະ ຫວັງວ່າຈະປະຕິບັດຕາມເນື້ອໃນຂ້າງເທິງດ້ວຍ.`;
+    closingLead = `ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະດອກເບ້ຍ${dueDate?` ກ່ອນວັນທີ <b>${fmtDateShort(dueDate)}</b>`:''}.`;
   }
+  const closing = `<div class="ltr-closing-lead">${closingLead}</div><div class="ltr-closing-follow">${closingFollow}</div>`;
 
   // Official APB letterhead: use standard header image (country header + bank logo + branding strip)
   // Body content indents to align under header text band
-  const BODY_INDENT = '40px';
   const contactLine = [
     contactName ? `<b>ຜູ້ປະສານງານ ທສກ:</b> ${contactName}` : '<b>ຜູ້ປະສານງານ ທສກ:</b>',
     (contactTel || contactWa) ? `ໂທ &amp; Whatsapp : ${[contactTel, contactWa].filter(Boolean).join(' / ')}` : 'ໂທ &amp; Whatsapp :'
@@ -2345,8 +2353,8 @@ function buildLetter() {
             </tr>
           </table>
           <div class="ltr-title">${isThWang ? titleLao : `<span class="u">${titleLao}</span>`}</div>
-          <div class="ltr-to" style="margin-left:${BODY_INDENT}">ຮຽນ: ${displayName}, ທີ່ນັບຖື.</div>
-          <div class="ltr-re" style="margin-left:${BODY_INDENT}">ເລື່ອງ: ${subject}</div>
+          <div class="ltr-to">ຮຽນ: ${displayName}, ທີ່ນັບຖື.</div>
+          <div class="ltr-re">ເລື່ອງ: ${subject}</div>
           ${refLines ? `<div class="ltr-ref" style="padding-left:28px">${refLines}</div>` : ''}
           <div class="ltr-body">${bodyIntro}</div>
         </div>
