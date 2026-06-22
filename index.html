@@ -2221,7 +2221,6 @@ function buildLetter() {
   const docNoRaw = (document.getElementById('docNo').value || '').trim();
   const noticeMonth = document.getElementById('noticeMonth').value || '__/____';
   const dueDate = document.getElementById('dueDate').value;
-  const penCalcDate = document.getElementById('penCalcDate').value;
   const contracts = document.getElementById('contracts').value.split('\n').filter(x => x.trim());
   const hasRefs = contracts.length > 0;
   const contactName = document.getElementById('contactName').value;
@@ -2403,14 +2402,6 @@ function buildLetter() {
     `;
   }
 
-  // Note
-  let note = '';
-  if (isThWang) {
-    note = `<div class="ltr-note penalty"><b>ໝາຍເຫດ:</b> ດອກເບ້ຍປັບໄໝ ຄິດໄລ່ຮອດວັນທີ ${fmtDateShort(penCalcDate)} ອາດມີການປ່ຽນແປງຕາມວັນທີຊຳລະຕົວຈິງ. ການຊຳລະ ມີກຳນົດຊ້າສຸດບໍ່ໃຫ້ກາຍ ວັນທີ ${fmtDateShort(dueDate)}.</div>`;
-  } else if (dueDate) {
-    note = `<div class="ltr-note"><b>ໝາຍເຫດ:</b> ການຊຳລະດອກເບ້ຍ ມີກຳນົດຊ້າສຸດບໍ່ໃຫ້ກາຍ ວັນທີ ${fmtDateShort(dueDate)}.</div>`;
-  }
-
   // Closing — standard APB template wording
   const closingFollow = 'ດັ່ງນັ້ນ, ຈຶ່ງແຈ້ງມາຍັງທ່ານເພື່ອຊາບ ແລະ ຫວັງວ່າຈະປະຕິບັດຕາມເນື້ອໃນຂ້າງເທິງດ້ວຍ.';
   let closingLead;
@@ -2456,7 +2447,6 @@ function buildLetter() {
         </div>
         ${intTable ? `<div class="ltr-block" data-block-id="int-table">${intTable}</div>` : ''}
         ${prinTable ? `<div class="ltr-block" data-block-id="prin-table">${prinTable}</div>` : ''}
-        ${note ? `<div class="ltr-block" data-block-id="note">${note}</div>` : ''}
         <div class="ltr-block" data-block-id="closing">
           <div class="ltr-closing">${closing}</div>
           <div style="display:flex;justify-content:flex-end;margin-top:14px">
@@ -2722,7 +2712,6 @@ const LETTER_BLOCK_LABELS = {
   'header': 'ສ່ວນຫົວໜັງສື (ເລກທີ, ຮຽນ, ເລື່ອງ, ອີງຕາມ, ເນື້ອຫາ)',
   'int-table': '1. ການຊຳລະດອກເບ້ຍ (ຕາຕະລາງ)',
   'prin-table': '2. ການຊຳລະຕົ້ນທຶນ (ຕາຕະລາງ)',
-  'note': 'ໝາຍເຫດ',
   'closing': 'ຂໍ້ຄວາມປິດທ້າຍ / ລາຍເຊັນ'
 };
 
