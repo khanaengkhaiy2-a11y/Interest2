@@ -636,11 +636,11 @@
     overflow-wrap: anywhere;
     word-break: break-word;
     font-family: var(--ltr-font);
+    border: 1px solid #333;
   }
   .ltr-table th {
     background: #fff;
     color: #000;
-    border: 1px solid #333;
     font-weight: 700;
     text-align: center;
     font-size: inherit;
@@ -649,7 +649,6 @@
     line-height: 1.2;
   }
   .ltr-table td {
-    border: 1px solid #888;
     vertical-align: top;
     color: #000;
     background: #fff;
@@ -1217,6 +1216,22 @@ function fmt(n, dec) {
   return Number(n).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
 }
 function fmt0(n) { return fmt(n, 0); }
+const TUE_UNIT = 1000000000; // 1 ຕື້ = 1,000 ລ້ານກີບ (1,000,000,000)
+function fmtInTue(n) {
+  const tue = n / TUE_UNIT;
+  if (Math.abs(tue - Math.round(tue)) < 1e-6) return String(Math.round(tue));
+  return String(Math.round(tue * 100) / 100).replace(/\.?0+$/, '');
+}
+function fmtLimitOutstanding(n, currency) {
+  const num = parseN(n);
+  if (!num && num !== 0) return '-';
+  const cur = normalizeCurrency(currency || 'ກີບ');
+  if (cur === 'ກີບ' || cur === 'LAK') {
+    const tueAmount = num / TUE_UNIT;
+    if (tueAmount > 100) return `${fmtInTue(num)} ຕື້`;
+  }
+  return fmt0(num);
+}
 function parseN(s) {
   if (s === null || s === undefined || s === '') return 0;
   if (typeof s === 'number') return s;
@@ -1674,6 +1689,10 @@ function getIntUnpaidAmount(r) {
 
 function hasAnyIntUnpaid() {
   return interestRows.some(r => getIntUnpaidAmount(r) > 0);
+}
+
+function hasAnyIntPenalty() {
+  return interestRows.some(r => getIntPenalty(r) > 0);
 }
 
 function renderInterestTableHeader() {
@@ -2264,14 +2283,16 @@ function buildLetter() {
   let intTable = '';
   if (interestRows.length > 0) {
     const showUnpaidCol = hasAnyIntUnpaid() || forceShowUnpaidCol;
-    const showIntPenCol = true;
+    const showIntPenCol = hasAnyIntPenalty();
     const unpaidHead = unpaidPeriodLabel ? `ດອກເບ້ຍຄ້າງ<br>ເດືອນ ${unpaidPeriodLabel}` : 'ດອກເບ້ຍຄ້າງ';
     const accruedHead = `ດອກເບ້ຍເກີດຂຶ້ນ<br>ໃນເດືອນ ${accruedPeriodLabel}`;
     const intPenHead = 'ດອກເບ້ຍ<br>ປັບໄໝ';
 
-    const intMinCols = showUnpaidCol
-      ? '[42, 0, 0, 0, 48, 0, 0, 0, 0]'
-      : '[42, 0, 0, 0, 48, 0, 0, 0]';
+    const intMinColArr = [42, 0, 0, 0, 48];
+    if (showUnpaidCol) intMinColArr.push(0);
+    if (showIntPenCol) intMinColArr.push(0);
+    intMinColArr.push(0, 0);
+    const intMinCols = `[${intMinColArr.join(', ')}]`;
 
     const baseHead = `
       <th class="ltr-col-no">ລຳດັບ</th>
@@ -2296,8 +2317,8 @@ function buildLetter() {
       if (!totalsByCurrency[cur]) totalsByCurrency[cur] = 0;
       totalsByCurrency[cur] += rowTotal;
       const rateDisp = r.rate ? (Number(r.rate).toFixed(2).replace(/\.?0+$/,'') + '%') : '-';
-      const limitStr = fmt0(r.limit);
-      const outStr = fmt0(r.outstanding);
+      const limitStr = fmtLimitOutstanding(r.limit, r.currency);
+      const outStr = fmtLimitOutstanding(r.outstanding, r.currency);
       const unpaidStr = unpaidAmt ? fmt(unpaidAmt) : '';
       const intPenStr = intPen ? fmt(intPen) : '';
       const accruedStr = r.accrued ? fmt(r.accrued) : '-';
@@ -2372,7 +2393,8 @@ function buildLetter() {
     </tr>`;
     const rows = principalRows.map((r, i) => {
       tP += r.amount||0; tPen += r.penalty||0;
-      const limitStr = fmt0(r.limit), outStr = fmt0(r.outstanding);
+      const limitStr = fmtLimitOutstanding(r.limit, r.currency);
+      const outStr = fmtLimitOutstanding(r.outstanding, r.currency);
       const amountStr = fmt0(r.amount);
       const penStr = r.penalty ? fmt(r.penalty) : '-';
       return `<tr>
