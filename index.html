@@ -1127,7 +1127,7 @@
         </div>
         <div id="gradeTextPanel" style="display:none;margin-top:8px;padding:14px 16px;background:var(--bg);border-radius:10px;border-left:3px solid var(--red)">
           <div class="helper-text" style="margin-bottom:10px">
-            ແກ້ໄຂຂໍ້ຄວາມໄດ້ — ຕົວຍຶດ: <code>{payText}</code> <code>{dueDate}</code> <code>{amount}</code> <code>{tier}</code>
+            ແກ້ໄຂຂໍ້ຄວາມໄດ້ — ຕົວຍຶດ: <code>{payText}</code> <code>{dueDate}</code> <code>{overdueDetail}</code> <code>{tier}</code>
           </div>
           <div class="form-group full" id="gradeTextBWrap" style="display:none">
             <label>ຂໍ້ຄວາມເກດ B</label>
@@ -1256,7 +1256,7 @@ let uploadedFiles = []; // {file, type: 'A000'|'A003'|'?'}
 let customer = { name: '', nameLo: '', id: '', address: '', phone: '' };
 let creditGrade = ''; // CRG ຈາກ PDF (A/B/C/...)
 let interestRows = []; // see section in code for shape
-let principalRows = []; // {currency, limit, outstanding, installmentNo, dueDate, amount, penalty}
+let principalRows = []; // {currency, limit, outstanding, installmentNo, dueDate, amount, penalty, days?}
 let letterType = 'normal'; // normal | penalty | principal | combo
 let forceShowUnpaidCol = false; // user toggle for showing unpaid col even if empty
 let forceShowPenaltyCol = false; // user toggle for penalty col in principal table
@@ -1572,9 +1572,9 @@ function updateCrgHint() {
     : (picked ? `ເລືອກໃຊ້: ${picked}` : 'ເກດຈາກ PDF: —');
 }
 
-const DEFAULT_GRADE_TEXT_B = 'ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະ{payText}{dueDate} ຈຳນວນ {amount}, ຫາກຍັງບໍ່ຊຳລະຕາມການແຈ້ງສະບັບນີ້ ທສກ ຈະໄດ້ຈັດຊັ້ນໜີ້ຂອງທ່ານ ໃຫ້ກາຍເປັນໜີ້ NPL ຫຼື ໜີ້ເສຍ ເຊີ່ງຈະມີຜົນກະທົບຕໍ່ພາບລັກ ແລະ ຊື່ສຽງຂອງທ່ານ. ບໍລິສັດຂອງທ່ານ ຈະເຮັດໃຫ້ທຸກທະນາຄານທຸລະກິດ ຂາດຄວາມເຊື່ອໝັ້ນຕໍ່ການດຳເນີນງານຂອງທ່ານ';
+const DEFAULT_GRADE_TEXT_B = 'ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະ{payText}{dueDate} ຈຳນວນຕາມຕາຕະລາງທີ່ລະບຸໄວ້ຂ້າງເທີງ {overdueDetail} ຫາກຍັງບໍ່ຊຳລະຕາມການແຈ້ງສະບັບນີ້ ທສກ ຈະໄດ້ຈັດຊັ້ນໜີ້ຂອງທ່ານ ໃຫ້ກາຍເປັນໜີ້ NPL ຫຼື ໜີ້ເສຍ ເຊີ່ງຈະມີຜົນກະທົບຕໍ່ພາບລັກ ແລະ ຊື່ສຽງຂອງທ່ານ. ບໍລິສັດຂອງທ່ານ ຈະເຮັດໃຫ້ທຸກທະນາຄານທຸລະກິດ ຂາດຄວາມເຊື່ອໝັ້ນຕໍ່ການດຳເນີນງານຂອງທ່ານ.';
 
-const DEFAULT_GRADE_TEXT_C = 'ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະ{payText}{dueDate} ຈຳນວນ {amount}, ປະຈຸບັນທ່ານຖືກຈັດຊັ້ນໜີ້ ({tier}) ເປັນໜີ້ NPL ຫຼື ໜີ້ເສຍແລ້ວ ຫາກທ່ານບໍ່ສາມາດຊຳລະໄດ້ຕາມການແຈ້ງສະບັບນີ້ ທສກ ມີຄວາມຈຳເປັນ ຕ້ອງໄດ້ດຳເນີນການແກ້ໄຂຕາມເງື່ອນໄຂໃນສັນຍາ ແລະ ຕາມລະບຽບການຂອງ ທສກ';
+const DEFAULT_GRADE_TEXT_C = 'ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະ{payText}{dueDate} ຈຳນວນຕາມຕາຕະລາງທີ່ລະບຸໄວ້ຂ້າງເທີງ {overdueDetail} ປະຈຸບັນທ່ານຖືກຈັດຊັ້ນໜີ້ ({tier}) ເປັນໜີ້ NPL ຫຼື ໜີ້ເສຍແລ້ວ ຫາກທ່ານບໍ່ສາມາດຊຳລະໄດ້ຕາມການແຈ້ງສະບັບນີ້ ທສກ ມີຄວາມຈຳເປັນ ຕ້ອງໄດ້ດຳເນີນການແກ້ໄຂຕາມເງື່ອນໄຂໃນສັນຍາ ແລະ ຕາມລະບຽບການຂອງ ທສກ.';
 
 function ensureGradeTextDefaults() {
   const b = document.getElementById('gradeTextB');
@@ -1672,7 +1672,8 @@ async function parseAllFiles() {
           principalRows: pRows.map(r => ({
             dueDate: r.dueDate,
             amount: r.remaining,
-            penalty: r.penalty
+            penalty: r.penalty,
+            days: r.days
           })),
           _has003: true
         });
@@ -1706,7 +1707,8 @@ async function parseAllFiles() {
             installmentNo: `ງວດທີ ${String(idx + 1).padStart(2,'0')}`,
             dueDate: p.dueDate,
             amount: p.amount,
-            penalty: p.penalty
+            penalty: p.penalty,
+            days: p.days || 0
           });
         });
       }
@@ -2405,6 +2407,69 @@ function getAccruedPeriodLabel(noticeMonth) {
   return first === last ? fmtMY(first) : `${fmtMY(first)} - ${fmtMY(last)}`;
 }
 
+function countInterestOverdueMonths() {
+  const keys = new Set();
+  interestRows.forEach(r => {
+    (r.unpaidPeriods || []).forEach(p => {
+      if ((p.amount || 0) + (p.penalty || 0) > 0) {
+        if (p.dueDate) {
+          const d = new Date(p.dueDate);
+          if (!isNaN(d)) keys.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+          else keys.add(p.dueDate);
+        } else if (p.label) {
+          keys.add(p.label.trim());
+        }
+      }
+    });
+  });
+  if (keys.size > 0) return keys.size;
+  if (interestRows.some(r => getIntUnpaidAmount(r) > 0 || getIntPenalty(r) > 0)) return 1;
+  return 0;
+}
+
+function getPrincipalOverdueRefDate() {
+  const el = document.getElementById('penCalcDate');
+  if (el && el.value) return el.value;
+  return new Date().toISOString().split('T')[0];
+}
+
+function getFirstOverduePrincipalRow() {
+  return principalRows
+    .filter(r => (r.amount || 0) + (r.penalty || 0) > 0 && r.dueDate)
+    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))[0] || null;
+}
+
+function getPrincipalDaysOverdueFromFirst() {
+  const first = getFirstOverduePrincipalRow();
+  if (!first) return null;
+  const ref = getPrincipalOverdueRefDate();
+  const due = new Date(first.dueDate);
+  const end = new Date(ref);
+  if (!isNaN(due) && !isNaN(end)) {
+    const diff = Math.round((end - due) / 86400000);
+    if (diff >= 0) return diff;
+  }
+  return first.days > 0 ? first.days : null;
+}
+
+function getOverdueDetailText() {
+  const intMonths = countInterestOverdueMonths();
+  const prinDays = getPrincipalDaysOverdueFromFirst();
+  const hasInt = intMonths > 0;
+  const hasPrin = prinDays != null && prinDays > 0;
+
+  if (hasInt && hasPrin) {
+    return `ເຊີ່ງທ່ານໄດ້ມີການຄ້າງຊຳລະງວດຕົ້ນທຶນ ${prinDays} ວັນ ແລະ ດອກເບ້ຍ ${intMonths} ເດືອນ,`;
+  }
+  if (hasInt) {
+    return `ເຊີ່ງທ່ານໄດ້ມີການຄ້າງຊຳລະດອກເບ້ຍ ຈຳນວນ ${intMonths} ເດືອນ,`;
+  }
+  if (hasPrin) {
+    return `ເຊີ່ງທ່ານໄດ້ມີການຄ້າງຊຳລະງວດຕົ້ນທຶນ ${prinDays} ວັນ,`;
+  }
+  return 'ເຊີ່ງທ່ານໄດ້ມີການຄ້າງຊຳລະງວດຕົ້ນທຶນ ຫຼື ດອກເບ້ຍ,';
+}
+
 function getLetterTotalPayable() {
   let total = 0;
   interestRows.forEach(r => {
@@ -2442,13 +2507,14 @@ function gradePayableText() {
 
 function applyGradeTemplate(template, dueDate) {
   const payText = gradePayableText();
-  const duePart = dueDate ? ` ກ່ອນວັນທີ ${fmtDateShort(dueDate)}` : '';
-  const amt = fmt0(getLetterTotalPayable());
+  const duePart = dueDate ? ` ກ່ອນວັນທີ <b>${fmtDateShort(dueDate)}</b>` : '';
   const tier = getSelectedCrgTier();
   return template
     .replace(/\{payText\}/g, payText)
     .replace(/\{dueDate\}/g, duePart)
-    .replace(/\{amount\}/g, `<b>${amt}</b>`)
+    .replace(/\{overdueDetail\}/g, getOverdueDetailText())
+    .replace(/\{tableAmount\}/g, 'ຈຳນວນຕາມຕາຕະລາງທີ່ລະບຸໄວ້ຂ້າງເທີງ')
+    .replace(/\{amount\}/g, `<b>${fmt0(getLetterTotalPayable())}</b>`)
     .replace(/\{tier\}/g, `<b>${tier}</b>`);
 }
 
