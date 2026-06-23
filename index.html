@@ -631,8 +631,8 @@
   }
   .ltr-table th,
   .ltr-table td {
-    padding: 4px 5px;
-    line-height: 1.3;
+    padding: 5px 5px;
+    line-height: 1.45;
     overflow-wrap: anywhere;
     word-break: break-word;
     font-family: var(--ltr-font);
@@ -646,10 +646,11 @@
     font-size: inherit;
     white-space: normal;
     word-break: break-word;
-    line-height: 1.2;
+    line-height: 1.35;
+    padding: 5px 4px;
   }
   .ltr-table td {
-    vertical-align: top;
+    vertical-align: middle;
     color: #000;
     background: #fff;
   }
@@ -682,6 +683,28 @@
     white-space: nowrap;
     word-break: keep-all;
   }
+  .ltr-table th.ltr-col-limit {
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    line-height: 1.3;
+  }
+  .ltr-table td.ltr-col-limit {
+    white-space: nowrap !important;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    padding-top: 6px;
+    padding-bottom: 5px;
+  }
+  .ltr-table th.ltr-col-tue,
+  .ltr-table td.ltr-col-tue {
+    text-align: center !important;
+    line-height: 1.45;
+  }
+  .ltr-table td.ltr-col-tue {
+    padding-top: 6px;
+    padding-bottom: 5px;
+  }
   .ltr-table th.ltr-col-no,
   .ltr-table td.ltr-col-no {
     white-space: nowrap;
@@ -700,7 +723,7 @@
   .ltr-table.tight-num td.c,
   .ltr-table.tight-num th.c {
     font-size: 9pt !important;
-    line-height: 1.3;
+    line-height: 1.4;
   }
   .ltr-table.tight-num .r,
   .ltr-table.tight-num td.r,
@@ -712,7 +735,8 @@
   /* ມີອີງຕາມ — ກັນຕົວເລກທັບກັນ */
   .letter-has-refs .ltr-table.apb-auto-fit-tbl th,
   .letter-has-refs .ltr-table.apb-auto-fit-tbl td {
-    padding: 2px 3px;
+    padding: 4px 4px;
+    line-height: 1.38;
   }
   .letter-has-refs .ltr-table .r,
   .letter-has-refs .ltr-table td.r,
@@ -723,8 +747,8 @@
   /* ບໍ່ມີອີງຕາມ — ຕາຕະລາງແບບໃໝ່ */
   .letter-doc:not(.letter-has-refs) .ltr-table.apb-auto-fit-tbl th,
   .letter-doc:not(.letter-has-refs) .ltr-table.apb-auto-fit-tbl td {
-    padding: 2px 3px;
-    line-height: 1.25;
+    padding: 4px 4px;
+    line-height: 1.38;
   }
   .letter-doc:not(.letter-has-refs) .ltr-table .r,
   .letter-doc:not(.letter-has-refs) .ltr-table td.r,
@@ -740,7 +764,7 @@
   .letter-doc:not(.letter-has-refs) .ltr-table.tight-num th,
   .letter-doc:not(.letter-has-refs) .ltr-table.tight-num td {
     font-size: 9pt !important;
-    line-height: 1.25;
+    line-height: 1.38;
   }
   .ltr-table tfoot td {
     background: #fff;
@@ -1216,21 +1240,39 @@ function fmt(n, dec) {
   return Number(n).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
 }
 function fmt0(n) { return fmt(n, 0); }
+function roundWhole(n) {
+  const num = parseN(n);
+  if (!num && num !== 0) return 0;
+  if (Number.isInteger(num)) return num;
+  return num > 0 ? Math.ceil(num - 1e-9) : Math.floor(num + 1e-9);
+}
+/** ຕົວເລກໃນໜັງສື — ປັດຂຶ້ນເປັນຈຳນວນເຕັມ, ບໍ່ມີທົດສະນິຍົມ */
+function fmtLtr(n) {
+  if (!n && n !== 0) return '';
+  const rounded = roundWhole(n);
+  return fmt0(rounded);
+}
 const TUE_UNIT = 1000000000; // 1 ຕື້ = 1,000 ລ້ານກີບ (1,000,000,000)
 function fmtInTue(n) {
   const tue = n / TUE_UNIT;
   if (Math.abs(tue - Math.round(tue)) < 1e-6) return String(Math.round(tue));
   return String(Math.round(tue * 100) / 100).replace(/\.?0+$/, '');
 }
-function fmtLimitOutstanding(n, currency) {
-  const num = parseN(n);
-  if (!num && num !== 0) return '-';
+function formatLimitOutstanding(n, currency) {
+  const num = roundWhole(n);
+  if (!num && num !== 0) return { text: '-', center: false };
   const cur = normalizeCurrency(currency || 'ກີບ');
   if (cur === 'ກີບ' || cur === 'LAK') {
     const tueAmount = num / TUE_UNIT;
-    if (tueAmount > 100) return `${fmtInTue(num)} ຕື້`;
+    if (tueAmount > 100) return { text: `${fmtInTue(num)} ຕື້`, center: true };
   }
-  return fmt0(num);
+  return { text: fmt0(num), center: false };
+}
+function fmtLimitOutstanding(n, currency) {
+  return formatLimitOutstanding(n, currency).text;
+}
+function limitOutCellClass(center) {
+  return center ? 'c ltr-col-limit ltr-col-tue' : 'r ltr-col-limit';
 }
 function parseN(s) {
   if (s === null || s === undefined || s === '') return 0;
@@ -2297,8 +2339,8 @@ function buildLetter() {
     const baseHead = `
       <th class="ltr-col-no">ລຳດັບ</th>
       <th class="ltr-col-currency">ສະກຸນ<br>ເງິນ</th>
-      <th>ວົງເງິນອະນຸມັດ</th>
-      <th>ຍອດເຫຼືອຕົ້ນທຶນ</th>
+      <th class="ltr-col-limit">ວົງເງິນ<br>ອະນຸມັດ</th>
+      <th class="ltr-col-limit">ຍອດເຫຼືອຕົ້ນທຶນ</th>
       <th class="ltr-col-rate">ອັດຕາ<br><span class="ltr-th-nowrap">ດອກເບ້ຍ</span></th>`;
     const unpaidTh = showUnpaidCol ? `<th>${unpaidHead}</th>` : '';
     const intPenTh = showIntPenCol ? `<th>${intPenHead}</th>` : '';
@@ -2312,24 +2354,27 @@ function buildLetter() {
     const body = interestRows.map((r, i) => {
       const unpaidAmt = getIntUnpaidAmount(r);
       const intPen = getIntPenalty(r);
-      const rowTotal = unpaidAmt + intPen + (r.accrued || 0);
+      const unpaidR = roundWhole(unpaidAmt);
+      const intPenR = roundWhole(intPen);
+      const accruedR = roundWhole(r.accrued || 0);
+      const rowTotal = unpaidR + intPenR + accruedR;
       const cur = r.currency || 'ກີບ';
       if (!totalsByCurrency[cur]) totalsByCurrency[cur] = 0;
       totalsByCurrency[cur] += rowTotal;
       const rateDisp = r.rate ? (Number(r.rate).toFixed(2).replace(/\.?0+$/,'') + '%') : '-';
-      const limitStr = fmtLimitOutstanding(r.limit, r.currency);
-      const outStr = fmtLimitOutstanding(r.outstanding, r.currency);
-      const unpaidStr = unpaidAmt ? fmt(unpaidAmt) : '';
-      const intPenStr = intPen ? fmt(intPen) : '';
-      const accruedStr = r.accrued ? fmt(r.accrued) : '-';
-      const totalStr = fmt(rowTotal);
+      const limitFmt = formatLimitOutstanding(r.limit, r.currency);
+      const outFmt = formatLimitOutstanding(r.outstanding, r.currency);
+      const unpaidStr = unpaidR ? fmt0(unpaidR) : '';
+      const intPenStr = intPenR ? fmt0(intPenR) : '';
+      const accruedStr = accruedR ? fmt0(accruedR) : '-';
+      const totalStr = fmt0(rowTotal);
       const unpaidTd = showUnpaidCol ? `<td class="r">${unpaidStr}</td>` : '';
       const intPenTd = showIntPenCol ? `<td class="r">${intPenStr}</td>` : '';
       return `<tr>
         <td class="c ltr-col-no">${i+1}</td>
         <td class="c ltr-col-currency">${r.currency}</td>
-        <td class="r">${limitStr}</td>
-        <td class="r">${outStr}</td>
+        <td class="${limitOutCellClass(limitFmt.center)}">${limitFmt.text}</td>
+        <td class="${limitOutCellClass(outFmt.center)}">${outFmt.text}</td>
         <td class="c ltr-col-rate">${rateDisp}</td>
         ${unpaidTd}
         ${intPenTd}
@@ -2344,22 +2389,22 @@ function buildLetter() {
 
     if (currencies.length === 1) {
       const cur = currencies[0];
-      footer = `<tr><td colspan="${footCols}" class="label">ລວມດອກເບ້ຍທີ່ຕ້ອງໄດ້ຊຳລະ (${cur})</td><td class="r">${fmt(totalsByCurrency[cur])}</td></tr>`;
+      footer = `<tr><td colspan="${footCols}" class="label">ລວມດອກເບ້ຍທີ່ຕ້ອງໄດ້ຊຳລະ (${cur})</td><td class="r">${fmt0(totalsByCurrency[cur])}</td></tr>`;
     } else {
       const baseCurrency = 'ກີບ';
       let grandInLAK = 0;
       const subtotalRows = currencies.map(cur => {
         const rate = getExchangeRate(cur, baseCurrency);
-        const inLAK = totalsByCurrency[cur] * rate;
+        const inLAK = roundWhole(totalsByCurrency[cur] * rate);
         grandInLAK += inLAK;
         if (cur === baseCurrency) {
-          return `<tr><td colspan="${footCols}" class="label">ລວມ ${cur}</td><td class="r">${fmt(totalsByCurrency[cur])}</td></tr>`;
+          return `<tr><td colspan="${footCols}" class="label">ລວມ ${cur}</td><td class="r">${fmt0(totalsByCurrency[cur])}</td></tr>`;
         }
-        const label = `ລວມ ${cur} (ທຽບ ${baseCurrency})  ${fmt(totalsByCurrency[cur])} ${cur} × ${fmt0(rate)} =`;
-        return `<tr><td colspan="${footCols}" class="label">${label}</td><td class="r">${fmt(inLAK)}</td></tr>`;
+        const label = `ລວມ ${cur} (ທຽບ ${baseCurrency})  ${fmt0(totalsByCurrency[cur])} ${cur} × ${fmt0(rate)} =`;
+        return `<tr><td colspan="${footCols}" class="label">${label}</td><td class="r">${fmt0(inLAK)}</td></tr>`;
       }).join('');
       footer = subtotalRows +
-        `<tr><td colspan="${footCols}" class="label" style="font-weight:700">ລວມທັງໝົດ (ທຽບ ${baseCurrency})</td><td class="r" style="font-weight:700">${fmt(grandInLAK)}</td></tr>`;
+        `<tr><td colspan="${footCols}" class="label" style="font-weight:700">ລວມທັງໝົດ (ທຽບ ${baseCurrency})</td><td class="r" style="font-weight:700">${fmt0(grandInLAK)}</td></tr>`;
     }
 
     const sectionTitle = `1. ການຊຳລະດອກເບ້ຍ${isThWang && unpaidPeriodLabel && showUnpaidCol ? ` (ຄ້າງເດືອນ ${unpaidPeriodLabel})` : ''}`;
@@ -2384,24 +2429,26 @@ function buildLetter() {
     const head = `<tr>
       <th class="ltr-col-no">ລຳດັບ</th>
       <th class="ltr-col-currency">ສະກຸນ</th>
-      <th>ວົງເງິນອະນຸມັດ</th>
-      <th>ຍອດເຫຼືອຕົ້ນທຶນ</th>
+      <th class="ltr-col-limit">ວົງເງິນ<br>ອະນຸມັດ</th>
+      <th class="ltr-col-limit">ຍອດເຫຼືອຕົ້ນທຶນ</th>
       <th>ງວດທີ</th>
       <th>ວັນເດືອນປີ<br>ງວດຊຳລະ</th>
       <th>ຈຳນວນເງິນ<br>ຕ້ອງຊຳລະ</th>
       ${showPenCol?'<th>ດອກເບ້ຍປັບໄໝ</th>':''}
     </tr>`;
     const rows = principalRows.map((r, i) => {
-      tP += r.amount||0; tPen += r.penalty||0;
-      const limitStr = fmtLimitOutstanding(r.limit, r.currency);
-      const outStr = fmtLimitOutstanding(r.outstanding, r.currency);
-      const amountStr = fmt0(r.amount);
-      const penStr = r.penalty ? fmt(r.penalty) : '-';
+      const amtR = roundWhole(r.amount || 0);
+      const penR = roundWhole(r.penalty || 0);
+      tP += amtR; tPen += penR;
+      const limitFmt = formatLimitOutstanding(r.limit, r.currency);
+      const outFmt = formatLimitOutstanding(r.outstanding, r.currency);
+      const amountStr = amtR ? fmt0(amtR) : '-';
+      const penStr = penR ? fmt0(penR) : '-';
       return `<tr>
         <td class="c ltr-col-no">${i+1}</td>
         <td class="c ltr-col-currency">${r.currency}</td>
-        <td class="r">${limitStr}</td>
-        <td class="r">${outStr}</td>
+        <td class="${limitOutCellClass(limitFmt.center)}">${limitFmt.text}</td>
+        <td class="${limitOutCellClass(outFmt.center)}">${outFmt.text}</td>
         <td class="c">${r.installmentNo||''}</td>
         <td class="c">${fmtDateShort(r.dueDate)}</td>
         <td class="r">${amountStr}</td>
@@ -2409,7 +2456,7 @@ function buildLetter() {
       </tr>`;
     }).join('');
     const footer = showPenCol
-      ? `<tr><td colspan="6" class="label">ລວມຕົ້ນທຶນ + ດອກເບ້ຍໄໝ</td><td class="r">${fmt0(tP)}</td><td class="r">${fmt(tPen)}</td></tr>`
+      ? `<tr><td colspan="6" class="label">ລວມຕົ້ນທຶນ + ດອກເບ້ຍໄໝ</td><td class="r">${fmt0(tP)}</td><td class="r">${fmt0(tPen)}</td></tr>`
       : `<tr><td colspan="6" class="label">ລວມຕົ້ນທຶນທີ່ຕ້ອງໄດ້ຊຳລະ</td><td class="r">${fmt0(tP)}</td></tr>`;
 
     const prinSecNum = interestRows.length > 0 ? '2' : '1';
@@ -2607,6 +2654,19 @@ function measureTableWidthsByPriority(tbl, fontPt) {
     });
     const headerW = measureTableHeaderCellWidth(th, fontPt);
     widths[i] = Math.max(bodyMax, Math.min(headerW, bodyMax + 6), 24);
+  });
+
+  headerRow.querySelectorAll('th.ltr-col-limit').forEach(th => {
+    const i = th.cellIndex;
+    if (i < 0) return;
+    let bodyMax = measureTableHeaderCellWidth(th, fontPt);
+    tbl.querySelectorAll('tbody tr').forEach(tr => {
+      const td = tr.children[i];
+      if (!td) return;
+      const w = measureTableTextWidth(td.innerText, false, fontPt) + 8;
+      if (w > bodyMax) bodyMax = w;
+    });
+    if (bodyMax > widths[i]) widths[i] = bodyMax;
   });
 
   headerRow.querySelectorAll('th.ltr-col-rate').forEach(th => {
