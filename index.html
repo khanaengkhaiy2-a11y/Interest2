@@ -544,6 +544,7 @@
   .letter-doc .ltr-closing,
   .letter-doc .ltr-closing-lead,
   .letter-doc .ltr-closing-follow,
+  .letter-doc .ltr-closing-extra,
   .letter-doc .ltr-note,
   .letter-doc .ltr-doc-meta,
   .letter-doc .ltr-contact,
@@ -788,6 +789,14 @@
     text-align: justify;
     margin-left: calc(3.7cm - var(--page-margin-left));
     margin-top: 0.8em;
+  }
+  .ltr-closing-extra,
+  .ltr-grade-warning {
+    text-align: justify;
+    text-indent: 28px;
+    margin-top: 0.8em;
+    font-size: 12pt;
+    line-height: 1.6;
   }
   .ltr-sig {
     display: flex; justify-content: flex-end; margin-top: 18px;
@@ -1088,7 +1097,46 @@
         <div class="form-group full">
           <label>ອ້າງອີງສັນຍາ (1 ແຖວ 1 ສັນຍາ)</label>
           <textarea id="contracts" placeholder="ອີງຕາມ ສັນຍາເງິນກູ້ ສະບັບເລກທີ ___/ທສກ.ພສຊ/20__ ລົງວັນທີ ___
-ອີງຕາມ ໃບຄິດໄລ່ດອກເບ້ຍສິນເຊື່ອ ຄັ້ງວັນທີ ___"></textarea>
+ອີງຕາມ ໃບຄິດໄລ່ດອກເບ້ຍສິນເຊື່ອ ຄັ້ງວັນທີ ___" oninput="generatePreview()"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>ຂໍ້ຄວາມເພີ່ມ (ກ່ອນຂໍ້ຄວາມປິດທ້າຍ)</label>
+          <textarea id="closingExtra" placeholder="ພິມຂໍ້ຄວາມເພີ່ມເຕີມຕາມຕ້ອງການ..." oninput="generatePreview()"></textarea>
+          <div class="helper-text">ຖ້າບໍ່ກອກ ຈະບໍ່ສະແດງໃນໜັງສື (ຄືກັບຊ່ອງອີງຕາມ)</div>
+        </div>
+        <div class="form-group">
+          <label>ຂໍ້ຄວາມເຕືອນເກດສິນເຊື່ອ (CRG)</label>
+          <select id="gradeWarningMode" onchange="onGradeWarningModeChange()">
+            <option value="none">ບໍ່ຕື່ມ — ໜັງສືແຈ້ງທົ່ວໄປ</option>
+            <option value="auto">ອັດຕະໂນມັດ (ຈາກ PDF)</option>
+            <option value="B">ເກດ B — ເຕືອນກ່ອນ NPL</option>
+            <option value="C">ເກດ C — ໜີ້ NPL/ເສຍແລ້ວ</option>
+          </select>
+          <div class="helper-text" id="crgDetectedHint">ເກດຈາກ PDF: —</div>
+        </div>
+        <div class="form-group">
+          <label>ຊັ້ນໜີ້ (ເລືອກເອງ)</label>
+          <select id="crgTier" onchange="updateCrgHint(); onGradeWarningModeChange();">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C" selected>C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+          </select>
+          <div class="helper-text">ຈັບຈາກ PDF ອັດຕະໂນມັດ — ປ່ຽນເອງໄດ້ຕາມຕ້ອງການ</div>
+        </div>
+        <div id="gradeTextPanel" style="display:none;margin-top:8px;padding:14px 16px;background:var(--bg);border-radius:10px;border-left:3px solid var(--red)">
+          <div class="helper-text" style="margin-bottom:10px">
+            ແກ້ໄຂຂໍ້ຄວາມໄດ້ — ຕົວຍຶດ: <code>{payText}</code> <code>{dueDate}</code> <code>{amount}</code> <code>{tier}</code>
+          </div>
+          <div class="form-group full" id="gradeTextBWrap" style="display:none">
+            <label>ຂໍ້ຄວາມເກດ B</label>
+            <textarea id="gradeTextB" rows="5" oninput="generatePreview()"></textarea>
+          </div>
+          <div class="form-group full" id="gradeTextCWrap" style="display:none">
+            <label>ຂໍ້ຄວາມເກດ C (ແລະ D/E)</label>
+            <textarea id="gradeTextC" rows="5" oninput="generatePreview()"></textarea>
+          </div>
         </div>
         <div class="form-group">
           <label>ສາຂາ</label>
@@ -1206,6 +1254,7 @@ const LETTER_FONT_FAMILY = "'PhetsarathTNR', 'Phetsarath OT', 'Times New Roman',
 let mode = 'pdf';
 let uploadedFiles = []; // {file, type: 'A000'|'A003'|'?'}
 let customer = { name: '', nameLo: '', id: '', address: '', phone: '' };
+let creditGrade = ''; // CRG ຈາກ PDF (A/B/C/...)
 let interestRows = []; // see section in code for shape
 let principalRows = []; // {currency, limit, outstanding, installmentNo, dueDate, amount, penalty}
 let letterType = 'normal'; // normal | penalty | principal | combo
@@ -1492,7 +1541,66 @@ function parseA003(text) {
     });
   }
 
-  return { loanNo: loanAcct, currency, limit: amountFinance, outstanding, rate, penRate, totalUnpaid, totalPenalty, rows };
+  return { loanNo: loanAcct, currency, limit: amountFinance, outstanding, rate, penRate, totalUnpaid, totalPenalty, rows, crgGrade: extractCreditGrade(text) };
+}
+
+function extractCreditGrade(text) {
+  const m = text.match(/CRG\s*:?\s*([A-E])/i);
+  return m ? m[1].toUpperCase() : '';
+}
+
+function mergeCreditGrade(g) {
+  if (!g) return;
+  const rank = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+  if (!creditGrade || (rank[g] || 0) > (rank[creditGrade] || 0)) creditGrade = g;
+}
+
+function syncCrgTierFromPdf() {
+  const tierSel = document.getElementById('crgTier');
+  if (tierSel && creditGrade && ['A','B','C','D','E'].includes(creditGrade)) {
+    tierSel.value = creditGrade;
+  }
+}
+
+function updateCrgHint() {
+  const el = document.getElementById('crgDetectedHint');
+  if (!el) return;
+  const tierSel = document.getElementById('crgTier');
+  const picked = tierSel?.value || '';
+  el.textContent = creditGrade
+    ? `ເກດຈາກ PDF: ${creditGrade}${picked && picked !== creditGrade ? ` (ເລືອກໃຊ້: ${picked})` : ''}`
+    : (picked ? `ເລືອກໃຊ້: ${picked}` : 'ເກດຈາກ PDF: —');
+}
+
+const DEFAULT_GRADE_TEXT_B = 'ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະ{payText}{dueDate} ຈຳນວນ {amount}, ຫາກຍັງບໍ່ຊຳລະຕາມການແຈ້ງສະບັບນີ້ ທສກ ຈະໄດ້ຈັດຊັ້ນໜີ້ຂອງທ່ານ ໃຫ້ກາຍເປັນໜີ້ NPL ຫຼື ໜີ້ເສຍ ເຊີ່ງຈະມີຜົນກະທົບຕໍ່ພາບລັກ ແລະ ຊື່ສຽງຂອງທ່ານ. ບໍລິສັດຂອງທ່ານ ຈະເຮັດໃຫ້ທຸກທະນາຄານທຸລະກິດ ຂາດຄວາມເຊື່ອໝັ້ນຕໍ່ການດຳເນີນງານຂອງທ່ານ';
+
+const DEFAULT_GRADE_TEXT_C = 'ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະ{payText}{dueDate} ຈຳນວນ {amount}, ປະຈຸບັນທ່ານຖືກຈັດຊັ້ນໜີ້ ({tier}) ເປັນໜີ້ NPL ຫຼື ໜີ້ເສຍແລ້ວ ຫາກທ່ານບໍ່ສາມາດຊຳລະໄດ້ຕາມການແຈ້ງສະບັບນີ້ ທສກ ມີຄວາມຈຳເປັນ ຕ້ອງໄດ້ດຳເນີນການແກ້ໄຂຕາມເງື່ອນໄຂໃນສັນຍາ ແລະ ຕາມລະບຽບການຂອງ ທສກ';
+
+function ensureGradeTextDefaults() {
+  const b = document.getElementById('gradeTextB');
+  const c = document.getElementById('gradeTextC');
+  if (b && !b.value.trim()) b.value = DEFAULT_GRADE_TEXT_B;
+  if (c && !c.value.trim()) c.value = DEFAULT_GRADE_TEXT_C;
+}
+
+function onGradeWarningModeChange(skipPreview) {
+  ensureGradeTextDefaults();
+  const mode = document.getElementById('gradeWarningMode')?.value || 'none';
+  const panel = document.getElementById('gradeTextPanel');
+  const bWrap = document.getElementById('gradeTextBWrap');
+  const cWrap = document.getElementById('gradeTextCWrap');
+  const showPanel = mode !== 'none';
+  if (panel) panel.style.display = showPanel ? 'block' : 'none';
+  let showB = mode === 'B';
+  let showC = mode === 'C';
+  if (mode === 'auto') {
+    const tier = getSelectedCrgTier();
+    showB = tier === 'B';
+    showC = tier === 'C' || tier === 'D' || tier === 'E';
+  }
+  if (bWrap) bWrap.style.display = showB ? 'block' : 'none';
+  if (cWrap) cWrap.style.display = showC ? 'block' : 'none';
+  if (!skipPreview) generatePreview();
 }
 
 async function parseAllFiles() {
@@ -1500,6 +1608,7 @@ async function parseAllFiles() {
   try {
     // Reset
     customer = { name: '', nameLo: '', id: '', address: '', phone: '' };
+    creditGrade = '';
     interestRows = [];
     principalRows = [];
 
@@ -1508,6 +1617,7 @@ async function parseAllFiles() {
 
     for (const entry of uploadedFiles) {
       const text = await extractPDFText(entry.file);
+      mergeCreditGrade(extractCreditGrade(text));
       entry.type = detectReportType(text);
 
       // Customer — first file wins
@@ -1537,6 +1647,7 @@ async function parseAllFiles() {
         });
       } else if (entry.type === 'A003') {
         const a = parseA003(text);
+        if (a.crgGrade) mergeCreditGrade(a.crgGrade);
         if (!a.loanNo) continue;
         if (!loanMap[a.loanNo]) loanMap[a.loanNo] = {};
         // Unpaid interest (I rows) — each is a separate "ງວດຄ້າງ"
@@ -1609,6 +1720,14 @@ async function parseAllFiles() {
 
     // Determine letter type
     updateLetterType();
+    if (creditGrade === 'B' || creditGrade === 'C' || creditGrade === 'D' || creditGrade === 'E') {
+      const sel = document.getElementById('gradeWarningMode');
+      if (sel && sel.value === 'none') sel.value = 'auto';
+    }
+    syncCrgTierFromPdf();
+    ensureGradeTextDefaults();
+    onGradeWarningModeChange(true);
+    updateCrgHint();
     renderCustomerInfo();
     renderInterestTable();
     renderPrincipalTable();
@@ -1684,6 +1803,13 @@ function renderCustomerInfo() {
   document.getElementById('custInfoSection').innerHTML = html;
 }
 function esc(s) { return (s||'').toString().replace(/"/g,'&quot;'); }
+function escHtml(s) {
+  return (s || '').toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 function readCustomerFromForm() {
   customer.name = (document.getElementById('custNameEn')?.value || customer.name).trim();
@@ -2147,6 +2273,9 @@ function proceedToLetterInfo() {
 
   document.getElementById('cardLetterInfo').style.display = 'block';
   document.getElementById('cardLetterInfo').scrollIntoView({ behavior: 'smooth' });
+  ensureGradeTextDefaults();
+  onGradeWarningModeChange(true);
+  updateCrgHint();
   setStep(3);
 }
 
@@ -2274,6 +2403,66 @@ function getAccruedPeriodLabel(noticeMonth) {
   const first = sorted[0], last = sorted[sorted.length-1];
   const fmtMY = s => { const [y,m]=s.split('-'); return `${m}/${y}`; };
   return first === last ? fmtMY(first) : `${fmtMY(first)} - ${fmtMY(last)}`;
+}
+
+function getLetterTotalPayable() {
+  let total = 0;
+  interestRows.forEach(r => {
+    total += roundWhole(getIntUnpaidAmount(r)) + roundWhole(getIntPenalty(r)) + roundWhole(r.accrued || 0);
+  });
+  principalRows.forEach(r => {
+    total += roundWhole(r.amount || 0) + roundWhole(r.penalty || 0);
+  });
+  return total;
+}
+
+function getSelectedCrgTier() {
+  const sel = document.getElementById('crgTier');
+  if (sel && sel.value) return sel.value;
+  return creditGrade || 'C';
+}
+
+function resolveGradeWarningMode() {
+  const mode = document.getElementById('gradeWarningMode')?.value || 'none';
+  if (mode === 'none') return null;
+  if (mode === 'B') return 'B';
+  if (mode === 'C') return 'C';
+  if (mode === 'auto') {
+    const g = getSelectedCrgTier();
+    if (g === 'B') return 'B';
+    if (g === 'C' || g === 'D' || g === 'E') return 'C';
+  }
+  return null;
+}
+
+function gradePayableText() {
+  if (letterType === 'combo' || letterType === 'principal') return 'ຕົ້ນທຶນ ແລະ ດອກເບ້ຍ';
+  return 'ດອກເບ້ຍ';
+}
+
+function applyGradeTemplate(template, dueDate) {
+  const payText = gradePayableText();
+  const duePart = dueDate ? ` ກ່ອນວັນທີ ${fmtDateShort(dueDate)}` : '';
+  const amt = fmt0(getLetterTotalPayable());
+  const tier = getSelectedCrgTier();
+  return template
+    .replace(/\{payText\}/g, payText)
+    .replace(/\{dueDate\}/g, duePart)
+    .replace(/\{amount\}/g, `<b>${amt}</b>`)
+    .replace(/\{tier\}/g, `<b>${tier}</b>`);
+}
+
+function buildGradeWarningHtml(grade, dueDate) {
+  ensureGradeTextDefaults();
+  if (grade === 'B') {
+    const tpl = (document.getElementById('gradeTextB')?.value || '').trim() || DEFAULT_GRADE_TEXT_B;
+    return applyGradeTemplate(tpl, dueDate);
+  }
+  if (grade === 'C') {
+    const tpl = (document.getElementById('gradeTextC')?.value || '').trim() || DEFAULT_GRADE_TEXT_C;
+    return applyGradeTemplate(tpl, dueDate);
+  }
+  return '';
 }
 
 function buildLetter() {
@@ -2473,13 +2662,21 @@ function buildLetter() {
 
   // Closing — standard APB template wording
   const closingFollow = 'ດັ່ງນັ້ນ, ຈຶ່ງແຈ້ງມາຍັງທ່ານເພື່ອຊາບ ແລະ ຫວັງວ່າຈະປະຕິບັດຕາມເນື້ອໃນຂ້າງເທິງດ້ວຍ.';
+  const gradeMode = resolveGradeWarningMode();
+  const useGradeWarning = gradeMode && letterType !== 'normal';
   let closingLead;
-  if (letterType === 'combo' || letterType === 'principal') {
+  if (useGradeWarning) {
+    closingLead = buildGradeWarningHtml(gradeMode, dueDate);
+  } else if (letterType === 'combo' || letterType === 'principal') {
     closingLead = `ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະຕົ້ນທຶນ ແລະ ດອກເບ້ຍ${dueDate?` ກ່ອນວັນທີ <b>${fmtDateShort(dueDate)}</b>`:''}.`;
   } else {
     closingLead = `ເພື່ອປະຕິບັດຕາມຂໍ້ຜູກພັນໃນສັນຍາສິນເຊື່ອ, ທສກ ຈຶ່ງຂໍແຈ້ງມາຍັງທ່ານໃຫ້ກະກຽມນຳເງິນມາຊຳລະດອກເບ້ຍ${dueDate?` ກ່ອນວັນທີ <b>${fmtDateShort(dueDate)}</b>`:''}.`;
   }
-  const closing = `<div class="ltr-closing-lead">${closingLead}</div><div class="ltr-closing-follow">${closingFollow}</div>`;
+  const closingExtraRaw = (document.getElementById('closingExtra')?.value || '').trim();
+  const closingExtraHtml = closingExtraRaw
+    ? `<div class="ltr-closing-extra">${escHtml(closingExtraRaw).replace(/\n/g, '<br>')}</div>`
+    : '';
+  const closing = `<div class="ltr-closing-lead">${closingLead}</div>${closingExtraHtml}<div class="ltr-closing-follow">${closingFollow}</div>`;
 
   // Official APB letterhead: use standard header image (country header + bank logo + branding strip)
   // Body content indents to align under header text band
