@@ -2676,11 +2676,11 @@ function buildLetter() {
   // Principal table
   let prinTable = '';
   if (principalRows.length > 0) {
-    let tP = 0, tPen = 0;
     const showPenCol = forceShowPenaltyCol || principalRows.some(r => (r.penalty||0) > 0);
-    const prinMinCols = showPenCol
-      ? '[42, 0, 0, 0, 32, 48, 0, 0]'
-      : '[42, 0, 0, 0, 32, 48, 0]';
+    const prinMinColArr = [42, 0, 0, 0, 32, 48, 0];
+    if (showPenCol) prinMinColArr.push(0);
+    prinMinColArr.push(0);
+    const prinMinCols = `[${prinMinColArr.join(', ')}]`;
     const head = `<tr>
       <th class="ltr-col-no">ລຳດັບ</th>
       <th class="ltr-col-currency">ສະກຸນ</th>
@@ -2690,15 +2690,21 @@ function buildLetter() {
       <th>ວັນເດືອນປີ<br>ງວດຊຳລະ</th>
       <th>ຈຳນວນເງິນ<br>ຕ້ອງຊຳລະ</th>
       ${showPenCol?'<th>ດອກເບ້ຍປັບໄໝ</th>':''}
+      <th>ລວມຕົ້ນທຶນ + ດອກເບ້ຍ<br>ທີ່ຕ້ອງຊຳລະ</th>
     </tr>`;
+    const totalsByCurrency = {};
     const rows = principalRows.map((r, i) => {
       const amtR = roundWhole(r.amount || 0);
       const penR = roundWhole(r.penalty || 0);
-      tP += amtR; tPen += penR;
+      const rowTotal = amtR + penR;
+      const cur = r.currency || 'ກີບ';
+      if (!totalsByCurrency[cur]) totalsByCurrency[cur] = 0;
+      totalsByCurrency[cur] += rowTotal;
       const limitFmt = formatLimitOutstanding(r.limit, r.currency);
       const outFmt = formatLimitOutstanding(r.outstanding, r.currency);
       const amountStr = amtR ? fmt0(amtR) : '-';
       const penStr = penR ? fmt0(penR) : '-';
+      const totalStr = rowTotal ? fmt0(rowTotal) : '-';
       return `<tr>
         <td class="c ltr-col-no">${i+1}</td>
         <td class="c ltr-col-currency">${r.currency}</td>
@@ -2708,11 +2714,34 @@ function buildLetter() {
         <td class="c">${fmtDateShort(r.dueDate)}</td>
         <td class="r">${amountStr}</td>
         ${showPenCol?`<td class="r">${penStr}</td>`:''}
+        <td class="r" style="font-weight:600">${totalStr}</td>
       </tr>`;
     }).join('');
-    const footer = showPenCol
-      ? `<tr><td colspan="6" class="label">ລວມຕົ້ນທຶນ + ດອກເບ້ຍໄໝ</td><td class="r">${fmt0(tP)}</td><td class="r">${fmt0(tPen)}</td></tr>`
-      : `<tr><td colspan="6" class="label">ລວມຕົ້ນທຶນທີ່ຕ້ອງໄດ້ຊຳລະ</td><td class="r">${fmt0(tP)}</td></tr>`;
+
+    const footCols = 6 + (showPenCol ? 2 : 1);
+    const currencies = Object.keys(totalsByCurrency);
+    const footLabel = showPenCol ? 'ລວມຕົ້ນທຶນ + ດອກເບ້ຍໄໝ' : 'ລວມຕົ້ນທຶນທີ່ຕ້ອງໄດ້ຊຳລະ';
+    let footer = '';
+
+    if (currencies.length === 1) {
+      const cur = currencies[0];
+      footer = `<tr><td colspan="${footCols}" class="label">${footLabel} (${cur})</td><td class="r">${fmt0(totalsByCurrency[cur])}</td></tr>`;
+    } else {
+      const baseCurrency = 'ກີບ';
+      let grandInLAK = 0;
+      const subtotalRows = currencies.map(cur => {
+        const rate = getExchangeRate(cur, baseCurrency);
+        const inLAK = roundWhole(totalsByCurrency[cur] * rate);
+        grandInLAK += inLAK;
+        if (cur === baseCurrency) {
+          return `<tr><td colspan="${footCols}" class="label">ລວມ ${cur}</td><td class="r">${fmt0(totalsByCurrency[cur])}</td></tr>`;
+        }
+        const label = `ລວມ ${cur} (ທຽບ ${baseCurrency})  ${fmt0(totalsByCurrency[cur])} ${cur} × ${fmt0(rate)} =`;
+        return `<tr><td colspan="${footCols}" class="label">${label}</td><td class="r">${fmt0(inLAK)}</td></tr>`;
+      }).join('');
+      footer = subtotalRows +
+        `<tr><td colspan="${footCols}" class="label" style="font-weight:700">ລວມທັງໝົດ (ທຽບ ${baseCurrency})</td><td class="r" style="font-weight:700">${fmt0(grandInLAK)}</td></tr>`;
+    }
 
     const prinSecNum = interestRows.length > 0 ? '2' : '1';
     const secTitle = `${prinSecNum}. ການຊຳລະຕົ້ນທຶນ${(letterType === 'combo') ? ' (ມີຄ້າງຊຳລະ)' : ''}`;
