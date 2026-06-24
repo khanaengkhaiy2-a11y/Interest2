@@ -710,6 +710,10 @@
   .ltr-table td.ltr-col-no {
     white-space: nowrap;
   }
+  .ltr-table th.ltr-col-date,
+  .ltr-table td.ltr-col-date {
+    white-space: nowrap !important;
+  }
   .ltr-table .c,
   .ltr-table td.c,
   .ltr-table th.c {
@@ -1018,7 +1022,8 @@
         </div>
       </div>
       <div class="helper-text" style="margin-bottom:8px">
-        ເພີ່ມແຖວນີ້ ເມື່ອລູກຄ້າມີງວດຕົ້ນທຶນຕ້ອງຊຳລະ (ຕາມກຳນົດສັນຍາ ຫຼື ຄ້າງຊຳລະ)
+        ເພີ່ມແຖວນີ້ ເມື່ອລູກຄ້າມີງວດຕົ້ນທຶນຕ້ອງຊຳລະ (ຕາມກຳນົດສັນຍາ ຫຼື ຄ້າງຊຳລະ).
+        ຖ້າປັບປຸງໂຄງສ້າງແລ້ວ ແຕ່ລະບົບຍັງສະແດງງວດເກົ່າ — ກົດ <b>✕</b> ເພື່ອລົບງວດທີ່ບໍ່ຕ້ອງແຈ້ງ.
       </div>
       <div class="acc-tbl-wrap">
         <table class="acc-tbl" id="tblPrincipal">
@@ -1032,7 +1037,7 @@
               <th style="width:130px">ວັນຄົບກຳນົດ</th>
               <th>ຈຳນວນເງິນຕ້ອງຊຳລະ</th>
               <th>ດອກເບ້ຍໄໝ (ຖ້າຄ້າງ)</th>
-              <th style="width:36px"></th>
+              <th style="width:44px" title="ລົບງວດ (ປັບປຸງໂຄງສ້າງແລ້ວ)">ລົບ</th>
             </tr>
           </thead>
           <tbody id="tblPrinBody"></tbody>
@@ -1345,6 +1350,14 @@ function fmtDateShort(s) {
   const d = new Date(s);
   if (isNaN(d)) return s;
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+function formatInstallmentNoDisplay(val, index) {
+  const raw = String(val || '').trim();
+  if (!raw) return String(index + 1).padStart(2, '0');
+  const stripped = raw.replace(/^ງວດທີ\s*/i, '').trim();
+  const digits = stripped.match(/\d+/);
+  if (digits) return digits[0].padStart(2, '0');
+  return stripped;
 }
 function parseDateFromPDF(s) {
   // "29-01-2025" -> "2025-01-29"
@@ -1694,7 +1707,7 @@ async function parseAllFiles() {
         accrued: l.accrued || 0,
         calcPeriods: l.calcPeriods || [],
         unpaidPeriods: l.unpaidPeriods || [],
-        _expanded: false
+        _expanded: (l.unpaidPeriods || []).length > 0
       });
 
       // Build principal rows
@@ -1704,7 +1717,7 @@ async function parseAllFiles() {
             currency: l.currency || 'ກີບ',
             limit: l.limit || 0,
             outstanding: l.outstanding || 0,
-            installmentNo: `ງວດທີ ${String(idx + 1).padStart(2,'0')}`,
+            installmentNo: String(idx + 1).padStart(2, '0'),
             dueDate: p.dueDate,
             amount: p.amount,
             penalty: p.penalty,
@@ -1964,7 +1977,7 @@ function renderInterestTable() {
         <td><input type="text" class="num" value="${p.amount?fmt(p.amount):''}" oninput="updUnpaidPeriodNum(${i},${pi},'amount',this.value)" placeholder="ຍອດຄ້າງ"></td>
         <td><input type="text" class="num" value="${p.penalty?fmt(p.penalty):''}" oninput="updUnpaidPeriodNum(${i},${pi},'penalty',this.value)" placeholder="ດອກເບ້ຍໄໝ"></td>
         <td class="c" style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red);font-weight:600;padding:6px 10px">${fmt((p.amount||0)+(p.penalty||0))}</td>
-        <td style="text-align:center"><button class="row-del" onclick="delUnpaidPeriod(${i},${pi})">✕</button></td>
+        <td style="text-align:center"><button class="row-del" onclick="delUnpaidPeriod(${i},${pi})" title="ລົບງວດ (ປັບປຸງໂຄງສ້າງແລ້ວ)">✕</button></td>
       </tr>
     `).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--soft);padding:12px;font-size:11px">ບໍ່ມີຄ້າງ</td></tr>`;
 
@@ -2001,7 +2014,8 @@ function renderInterestTable() {
             <button class="btn-add" onclick="addUnpaidPeriod(${i})" style="margin-left:auto;background:var(--red-light);border-color:var(--red);color:var(--red)">+ ເພີ່ມງວດຄ້າງ</button>
           </div>
           <div style="font-size:10.5px;color:var(--mid);margin-bottom:6px">
-            ຂຽນຊື່ງວດ (ເຊັ່ນ "02/2026") ແລະວັນກຳນົດຊຳລະ — ລະບົບຈະເອົາເດືອນ/ປີຈາກວັນກຳນົດໄປສ້າງຫົວຕາຕະລາງ
+            ຂຽນຊື່ງວດ (ເຊັ່ນ "02/2026") ແລະວັນກຳນົດຊຳລະ — ລະບົບຈະເອົາເດືອນ/ປີຈາກວັນກຳນົດໄປສ້າງຫົວຕາຕະລາງ.
+            ຖ້າປັບປຸງໂຄງສ້າງແລ້ວ ແຕ່ລະບົບຍັງສະແດງງວດເກົ່າ — ກົດ <b>✕</b> ເພື່ອລົບງວດທີ່ບໍ່ຕ້ອງແຈ້ງ.
           </div>
           <table class="acc-tbl" style="min-width:auto">
             <thead>
@@ -2012,7 +2026,7 @@ function renderInterestTable() {
                 <th>ຍອດຄ້າງ</th>
                 <th>ດອກເບ້ຍໄໝ</th>
                 <th>ລວມ</th>
-                <th style="width:36px"></th>
+                <th style="width:44px" title="ລົບງວດ (ປັບປຸງໂຄງສ້າງແລ້ວ)">ລົບ</th>
               </tr>
             </thead>
             <tbody>${unpaidRows}</tbody>
@@ -2159,11 +2173,11 @@ function renderPrincipalTable() {
       </select></td>
       <td><input type="text" class="num" value="${r.limit?fmt(r.limit):''}" oninput="updPrinNum(${i},'limit',this.value)"></td>
       <td><input type="text" class="num" value="${r.outstanding?fmt(r.outstanding):''}" oninput="updPrinNum(${i},'outstanding',this.value)"></td>
-      <td><input type="text" value="${esc(r.installmentNo)}" oninput="updPrin(${i},'installmentNo',this.value)" placeholder="ງວດທີ 01"></td>
+      <td><input type="text" value="${esc(r.installmentNo)}" oninput="updPrin(${i},'installmentNo',this.value)" placeholder="01"></td>
       <td><input type="date" value="${r.dueDate||''}" oninput="updPrin(${i},'dueDate',this.value)"></td>
       <td><input type="text" class="num" value="${r.amount?fmt(r.amount):''}" oninput="updPrinNum(${i},'amount',this.value); updatePrincipalTotal(); updateLetterType()"></td>
       <td><input type="text" class="num" value="${r.penalty?fmt(r.penalty):''}" oninput="updPrinNum(${i},'penalty',this.value); updatePrincipalTotal()"></td>
-      <td><button class="row-del" onclick="delPrinRow(${i})">✕</button></td>
+      <td><button class="row-del" onclick="delPrinRow(${i})" title="ລົບງວດ (ປັບປຸງໂຄງສ້າງແລ້ວ)">✕</button></td>
     </tr>
   `).join('');
   updatePrincipalTotal();
@@ -2180,7 +2194,7 @@ function updatePrincipalTotal() {
 }
 
 function addPrincipalRow() {
-  principalRows.push({ currency: 'ກີບ', limit: 0, outstanding: 0, installmentNo: `ງວດທີ ${String(principalRows.length+1).padStart(2,'0')}`, dueDate: '', amount: 0, penalty: 0 });
+  principalRows.push({ currency: 'ກີບ', limit: 0, outstanding: 0, installmentNo: String(principalRows.length + 1).padStart(2, '0'), dueDate: '', amount: 0, penalty: 0 });
   renderPrincipalTable();
   updateLetterType();
 }
@@ -2677,7 +2691,7 @@ function buildLetter() {
   let prinTable = '';
   if (principalRows.length > 0) {
     const showPenCol = forceShowPenaltyCol || principalRows.some(r => (r.penalty||0) > 0);
-    const prinMinColArr = [42, 0, 0, 0, 32, 48, 0];
+    const prinMinColArr = [42, 0, 0, 0, 32, 62, 0];
     if (showPenCol) prinMinColArr.push(0);
     prinMinColArr.push(0);
     const prinMinCols = `[${prinMinColArr.join(', ')}]`;
@@ -2687,7 +2701,7 @@ function buildLetter() {
       <th class="ltr-col-limit">ວົງເງິນ<br>ອະນຸມັດ</th>
       <th class="ltr-col-limit">ຍອດເຫຼືອຕົ້ນທຶນ</th>
       <th>ງວດທີ</th>
-      <th>ວັນເດືອນປີ<br>ງວດຊຳລະ</th>
+      <th class="ltr-col-date">ວັນເດືອນປີ<br>ງວດຊຳລະ</th>
       <th>ຈຳນວນເງິນ<br>ຕ້ອງຊຳລະ</th>
       ${showPenCol?'<th>ດອກເບ້ຍປັບໄໝ</th>':''}
       <th>ລວມຕົ້ນທຶນ + ດອກເບ້ຍ<br>ທີ່ຕ້ອງຊຳລະ</th>
@@ -2710,8 +2724,8 @@ function buildLetter() {
         <td class="c ltr-col-currency">${r.currency}</td>
         <td class="${limitOutCellClass(limitFmt.center)}">${limitFmt.text}</td>
         <td class="${limitOutCellClass(outFmt.center)}">${outFmt.text}</td>
-        <td class="c">${r.installmentNo||''}</td>
-        <td class="c">${fmtDateShort(r.dueDate)}</td>
+        <td class="c">${formatInstallmentNoDisplay(r.installmentNo, i)}</td>
+        <td class="c ltr-col-date">${fmtDateShort(r.dueDate)}</td>
         <td class="r">${amountStr}</td>
         ${showPenCol?`<td class="r">${penStr}</td>`:''}
         <td class="r" style="font-weight:600">${totalStr}</td>
@@ -2973,6 +2987,19 @@ function measureTableWidthsByPriority(tbl, fontPt) {
     if (i < 0) return;
     const w = measureTableHeaderCellWidth(th, fontPt);
     if (w > widths[i]) widths[i] = w;
+  });
+
+  headerRow.querySelectorAll('th.ltr-col-date').forEach(th => {
+    const i = th.cellIndex;
+    if (i < 0) return;
+    let bodyMax = measureTableHeaderCellWidth(th, fontPt);
+    tbl.querySelectorAll('tbody tr').forEach(tr => {
+      const td = tr.children[i];
+      if (!td) return;
+      const w = measureTableTextWidth(td.innerText, false, fontPt) + 6;
+      if (w > bodyMax) bodyMax = w;
+    });
+    if (bodyMax > widths[i]) widths[i] = bodyMax;
   });
 
   isNumeric.forEach((num, i) => {
