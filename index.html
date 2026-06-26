@@ -2759,7 +2759,15 @@ function buildLetter() {
     }
 
     const prinSecNum = interestRows.length > 0 ? '2' : '1';
-    const secTitle = `${prinSecNum}. ການຊຳລະຕົ້ນທຶນ${(letterType === 'combo') ? ' (ມີຄ້າງຊຳລະ)' : ''}`;
+    const _todayPrin = new Date(); _todayPrin.setHours(0, 0, 0, 0);
+    const hasOverduePrincipal = principalRows.some(r => {
+      if (!r.dueDate) return false;
+      const d = new Date(r.dueDate);
+      if (isNaN(d)) return false;
+      d.setHours(0, 0, 0, 0);
+      return d < _todayPrin; // ວັນງວດຊຳລະກາຍວັນທີແຈ້ງ (ມື້ນີ້) ໄປແລ້ວ
+    });
+    const secTitle = `${prinSecNum}. ການຊຳລະຕົ້ນທຶນ${hasOverduePrincipal ? ' (ມີຄ້າງຊຳລະ)' : ''}`;
     prinTable = `
       <div class="ltr-section-title">${secTitle}</div>
       <table class="ltr-table apb-auto-fit-tbl tight-num" data-min-cols="${prinMinCols}">
