@@ -924,7 +924,7 @@
       <!-- PDF MODE -->
       <div id="pdfMode">
         <div class="hint-box">
-          💡 ໂຫຼດ <b>LN_A_000</b> (ຄິດໄລ່ດອກເບ້ຍ) ແລະ/ຫຼື <b>LN_A_003</b> (ບັນຊີຄ້າງ) ຂອງລູກຄ້າເດຽວກັນພ້ອມກັນໄດ້ — ລະບົບຈະເລືອກປະເພດໜັງສືໃຫ້ອັດຕະໂນມັດ
+          💡 ໂຫຼດ <b>LN_A_000</b> (ຄິດໄລ່ດອກເບ້ຍ) ແລະ <b>LN_A_003</b> (ບັນຊີຄ້າງ) ຂອງລູກຄ້າເດຽວກັນພ້ອມກັນໄດ້ — ລະບົບຈະເລືອກປະເພດໜັງສືໃຫ້ອັດຕະໂນມັດ
         </div>
         <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
           <input type="file" id="fileInput" accept=".pdf" multiple onchange="handleFiles(this.files)">
@@ -2573,15 +2573,15 @@ function buildLetter() {
 
   // Subject line (ຮ່າງ ທສກ)
   let subject = '';
-  if (letterType === 'combo' || letterType === 'principal') subject = 'ການຊຳລະຕົ້ນທຶນ ແລະ/ຫຼື ຊຳລະດອກເບ້ຍ';
+  if (letterType === 'combo' || letterType === 'principal') subject = 'ການຊຳລະຕົ້ນທຶນ ແລະ ຊຳລະດອກເບ້ຍ';
   else subject = `ການຊຳລະດອກເບ້ຍ ປະຈຳເດືອນ ${noticeMonth}.`;
 
   const introSubject = letterIssuerIntro(signerRole);
   // Determine what's near due based on letter type
   let nearDueText;
-  if (letterType === 'combo' || letterType === 'principal') nearDueText = 'ຊຳລະຕົ້ນທຶນ ແລະ/ຫຼື ດອກເບ້ຍ';
+  if (letterType === 'combo' || letterType === 'principal') nearDueText = 'ຊຳລະຕົ້ນທຶນ ແລະ ດອກເບ້ຍ';
   else nearDueText = 'ຊຳລະດອກເບ້ຍ';
-  const bodyIntro = `${introSubject} ຂໍສະແດງຄວາມຂອບໃຈມາຍັງທ່ານທີ່ໄດ້ເລືອກໃຊ້ບໍລິການຜະລິດຕະພັນສິນເຊື່ອ ແລະ ໃຊ້ບໍລິການຜະລິດຕະພັນອື່ນໆຂອງ ທສກ, ພ້ອມກັບໃຫ້ຄວາມຮ່ວມມືດ້ວຍດີຕະຫຼອດມາ, ຫວັງຢ່າງຍິ່ງວ່າທ່ານຈະໃຫ້ຄວາມຮ່ວມມືໃນການພົວພັນດ້ານຕ່າງໆ, ຈຶ່ງຂໍຖືເປັນກຽດແຈ້ງມາຍັງທ່ານຊາບ ກ່ຽວກັບການຈັດຕັ້ງປະຕິບັດສັນຍາສິນເຊື່ອ, ທີ່ໃກ້ຄົບກຳນົດ${nearDueText}, ລາຍລະອຽດດັ່ງນີ້:`;
+  const bodyIntro = `${introSubject} ຂໍສະແດງຄວາມຂອບໃຈມາຍັງທ່ານທີ່ໄດ້ເລືອກໃຊ້ບໍລິການຜະລິດຕະພັນສິນເຊື່ອ ແລະ ໃຊ້ບໍລິການຜະລິດຕະພັນອື່ນໆຂອງ ທສກ ພ້ອມກັບໃຫ້ຄວາມຮ່ວມມືດ້ວຍດີຕະຫຼອດມາ ຫວັງຢ່າງຍິ່ງວ່າທ່ານຈະໃຫ້ຄວາມຮ່ວມມືໃນການພົວພັນດ້ານຕ່າງໆ, ຈຶ່ງຂໍຖືເປັນກຽດແຈ້ງມາຍັງທ່ານຊາບ ກ່ຽວກັບການຈັດຕັ້ງປະຕິບັດສັນຍາສິນເຊື່ອ, ທີ່ໃກ້ຄົບກຳນົດ${nearDueText}, ລາຍລະອຽດດັ່ງນີ້:`;
 
   // Refs
   const refLines = contracts.map(c => `<div>- ${c.replace(/^-\s*/, '')}</div>`).join('');
@@ -2770,7 +2770,7 @@ function buildLetter() {
   }
 
   // Closing — standard APB template wording
-  const closingFollow = 'ດັ່ງນັ້ນ, ຈຶ່ງແຈ້ງມາຍັງທ່ານເພື່ອຊາບ ແລະ ຫວັງວ່າຈະປະຕິບັດຕາມເນື້ອໃນຂ້າງເທິງດ້ວຍ.';
+  const closingFollow = 'ດັ່ງນັ້ນ, ຈຶ່ງແຈ້ງມາຍັງທ່ານເພື່ອຊາບ ແລະ ຫວັງວ່າຈະໄດ້ຮັບຄວາມຮ່ວມມືຈາກທ່ານດ້ວຍ.';
   const gradeMode = resolveGradeWarningMode();
   const useGradeWarning = gradeMode && letterType !== 'normal';
   let closingLead;
