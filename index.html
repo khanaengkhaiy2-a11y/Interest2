@@ -445,7 +445,7 @@
   .letter-page-bottom .letter-coordinator-wrap {
     flex-shrink: 0;
     width: 100%;
-    margin: 0;
+    margin: 0 0 2cm 0;
     padding: 0 0 0 3cm;
     box-sizing: border-box;
     font-size: 8pt;
@@ -1093,7 +1093,7 @@
         </div>
         <div class="form-group">
           <label>ຜູ້ລົງລາຍເຊັນ</label>
-          <select id="signerRole" onchange="generatePreview()">
+          <select id="signerRole" onchange="generatePreview(false)">
             <option value="head">ຫົວໜ້າພະແນກສິນເຊື່ອ</option>
             <option value="deputy">ຮອງຜູ້ອຳນວຍການຜູ້ຊີ້ນຳວຽກງານສິນເຊື່ອ</option>
             <option value="director">ຜູ້ອຳນວຍການ</option>
@@ -1102,11 +1102,11 @@
         <div class="form-group full">
           <label>ອ້າງອີງສັນຍາ (1 ແຖວ 1 ສັນຍາ)</label>
           <textarea id="contracts" placeholder="ອີງຕາມ ສັນຍາເງິນກູ້ ສະບັບເລກທີ ___/ທສກ.ພສຊ/20__ ລົງວັນທີ ___
-ອີງຕາມ ໃບຄິດໄລ່ດອກເບ້ຍສິນເຊື່ອ ຄັ້ງວັນທີ ___" oninput="generatePreview()"></textarea>
+ອີງຕາມ ໃບຄິດໄລ່ດອກເບ້ຍສິນເຊື່ອ ຄັ້ງວັນທີ ___" oninput="generatePreview(false)"></textarea>
         </div>
         <div class="form-group full">
           <label>ຂໍ້ຄວາມເພີ່ມ (ກ່ອນຂໍ້ຄວາມປິດທ້າຍ)</label>
-          <textarea id="closingExtra" placeholder="ພິມຂໍ້ຄວາມເພີ່ມເຕີມຕາມຕ້ອງການ..." oninput="generatePreview()"></textarea>
+          <textarea id="closingExtra" placeholder="ພິມຂໍ້ຄວາມເພີ່ມເຕີມຕາມຕ້ອງການ..." oninput="generatePreview(false)"></textarea>
           <div class="helper-text">ຖ້າບໍ່ກອກ ຈະບໍ່ສະແດງໃນໜັງສື (ຄືກັບຊ່ອງອີງຕາມ)</div>
         </div>
         <div class="form-group">
@@ -1136,11 +1136,11 @@
           </div>
           <div class="form-group full" id="gradeTextBWrap" style="display:none">
             <label>ຂໍ້ຄວາມເກດ B</label>
-            <textarea id="gradeTextB" rows="5" oninput="generatePreview()"></textarea>
+            <textarea id="gradeTextB" rows="5" oninput="generatePreview(false)"></textarea>
           </div>
           <div class="form-group full" id="gradeTextCWrap" style="display:none">
             <label>ຂໍ້ຄວາມເກດ C (ແລະ D/E)</label>
-            <textarea id="gradeTextC" rows="5" oninput="generatePreview()"></textarea>
+            <textarea id="gradeTextC" rows="5" oninput="generatePreview(false)"></textarea>
           </div>
         </div>
         <div class="form-group">
@@ -1172,15 +1172,15 @@
         <div class="form-grid">
           <div class="form-group" id="fgUSD" style="display:none">
             <label>1 USD = ? ກີບ</label>
-            <input type="text" id="rateUSD" placeholder="21,500" oninput="generatePreview()">
+            <input type="text" id="rateUSD" placeholder="21,500" oninput="generatePreview(false)">
           </div>
           <div class="form-group" id="fgTHB" style="display:none">
             <label>1 THB = ? ກີບ</label>
-            <input type="text" id="rateTHB" placeholder="640" oninput="generatePreview()">
+            <input type="text" id="rateTHB" placeholder="640" oninput="generatePreview(false)">
           </div>
           <div class="form-group" id="fgEUR" style="display:none">
             <label>1 EUR = ? ກີບ</label>
-            <input type="text" id="rateEUR" placeholder="23,000" oninput="generatePreview()">
+            <input type="text" id="rateEUR" placeholder="23,000" oninput="generatePreview(false)">
           </div>
         </div>
       </div>
@@ -1614,7 +1614,7 @@ function onGradeWarningModeChange(skipPreview) {
   }
   if (bWrap) bWrap.style.display = showB ? 'block' : 'none';
   if (cWrap) cWrap.style.display = showC ? 'block' : 'none';
-  if (!skipPreview) generatePreview();
+  if (!skipPreview) generatePreview(false);
 }
 
 async function parseAllFiles() {
@@ -2582,7 +2582,7 @@ function buildLetter() {
   let nearDueText;
   if (letterType === 'combo' || letterType === 'principal') nearDueText = 'ຊຳລະຕົ້ນທຶນ ແລະ ດອກເບ້ຍ';
   else nearDueText = 'ຊຳລະດອກເບ້ຍ';
-  const bodyIntro = `${introSubject} ຂໍສະແດງຄວາມຂອບໃຈມາຍັງທ່ານທີ່ໄດ້ເລືອກໃຊ້ບໍລິການຜະລິດຕະພັນສິນເຊື່ອ ແລະ ໃຊ້ບໍລິການຜະລິດຕະພັນອື່ນໆຂອງ ທສກ ພ້ອມກັບໃຫ້ຄວາມຮ່ວມມືດ້ວຍດີຕະຫຼອດມາ ແລະ ຫວັງຢ່າງຍິ່ງວ່າທ່ານຈະໃຫ້ຄວາມຮ່ວມມືໃນການພົວພັນດ້ານຕ່າງໆໃນຕໍ່ໜ້າ. ທສກ ຈຶ່ງຂໍຖືເປັນກຽດແຈ້ງມາຍັງທ່ານຊາບ ກ່ຽວກັບການຈັດຕັ້ງປະຕິບັດສັນຍາສິນເຊື່ອ ທີ່ໃກ້ຄົບກຳນົດ${nearDueText}, ລາຍລະອຽດດັ່ງນີ້:`;
+  const bodyIntro = `${introSubject} ຂໍສະແດງຄວາມຂອບໃຈມາຍັງທ່ານທີ່ໄດ້ໄວ້ວາງໃຈເລືອກໃຊ້ບໍລິການຜະລິດຕະພັນສິນເຊື່ອ ແລະ ຜະລິດຕະພັນອື່ນໆຂອງ ທສກ ພ້ອມກັບໃຫ້ຄວາມຮ່ວມມືຕະຫຼອດມາ ແລະ ຫວັງຢ່າງຍິ່ງວ່າທ່ານ ຈະເພີ່ມທະວີຂະຫຍາຍການຮ່ວມມື ແລະ ການພົວພັນທຸກດ້ານໃນຕໍ່ໜ້າ. ທສກ ຂໍອະນຸຍາດແຈ້ງມາຍັງທ່ານກ່ຽວກັບການຈັດຕັ້ງປະຕິບັດສັນຍາເງິນກູ້ ທີ່ໃກ້ຈະຄົບກຳນົດ${nearDueText}, ລາຍລະອຽດດັ່ງນີ້:`;
 
   // Refs
   const refLines = contracts.map(c => `<div>- ${c.replace(/^-\s*/, '')}</div>`).join('');
@@ -2600,7 +2600,7 @@ function buildLetter() {
     const accruedHead = `ດອກເບ້ຍເກີດຂຶ້ນ<br>ໃນເດືອນ ${accruedPeriodLabel}`;
     const intPenHead = 'ດອກເບ້ຍ<br>ປັບໄໝ';
 
-    const intMinColArr = [42, 0, 0, 0, 48];
+    const intMinColArr = [42, 0, 52, 52, 48];
     if (showUnpaidCol) intMinColArr.push(0);
     if (showIntPenCol) intMinColArr.push(0);
     intMinColArr.push(0, 0);
@@ -2692,7 +2692,7 @@ function buildLetter() {
   let prinTable = '';
   if (principalRows.length > 0) {
     const showPenCol = forceShowPenaltyCol || principalRows.some(r => (r.penalty||0) > 0);
-    const prinMinColArr = [42, 0, 0, 0, 32, 62, 0];
+    const prinMinColArr = [42, 0, 52, 52, 32, 62, 0];
     if (showPenCol) prinMinColArr.push(0);
     prinMinColArr.push(0);
     const prinMinCols = `[${prinMinColArr.join(', ')}]`;
@@ -2705,7 +2705,7 @@ function buildLetter() {
       <th class="ltr-col-date">ວັນເດືອນປີ<br>ງວດຊຳລະ</th>
       <th>ຈຳນວນເງິນ<br>ຕ້ອງຊຳລະ</th>
       ${showPenCol?'<th>ດອກເບ້ຍປັບໄໝ</th>':''}
-      <th>ລວມຕົ້ນທຶນ + ດອກເບ້ຍ<br>ທີ່ຕ້ອງຊຳລະ</th>
+      <th>${showPenCol ? 'ລວມຕົ້ນທຶນ + ດອກເບ້ຍ<br>ທີ່ຕ້ອງຊຳລະ' : 'ລວມຕົ້ນທຶນ<br>ທີ່ຕ້ອງຊຳລະ'}</th>
     </tr>`;
     const totalsByCurrency = {};
     const rows = principalRows.map((r, i) => {
@@ -3176,7 +3176,7 @@ function onPageBreakModeChange() {
   const mode = document.querySelector('input[name="pageBreakMode"]:checked')?.value || 'single';
   const box = document.getElementById('pageBreakChecks');
   if (box) box.style.display = mode === 'manual' ? 'flex' : 'none';
-  generatePreview();
+  generatePreview(false);
 }
 
 function refreshPageBreakOptions() {
@@ -3203,7 +3203,7 @@ function refreshPageBreakOptions() {
     const label = LETTER_BLOCK_LABELS[b.id] || b.id;
     const checked = saved.has(b.id) ? ' checked' : '';
     return `<label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12.5px">
-      <input type="checkbox" value="${b.id}"${checked} onchange="generatePreview()" style="margin-top:3px">
+      <input type="checkbox" value="${b.id}"${checked} onchange="generatePreview(false)" style="margin-top:3px">
       <span>ແບ່ງໜ້າກ່ອນ: <b>${label}</b></span>
     </label>`;
   }).join('');
@@ -3214,6 +3214,7 @@ function refreshPageBreakOptions() {
 
 let _letterChromeCache = null;
 
+const COORD_LIFT_PX = 76; // ຍ້າຍຂໍ້ຄວາມຜູ້ປະສານງານຂຶ້ນ ~2cm (footer ຢູ່ບ່ອນເກົ່າ)
 function getLetterChrome(headerHtml, footerHtml, coordinatorHtml) {
   if (_letterChromeCache) return _letterChromeCache;
   const sandbox = getLetterMeasureSandbox();
@@ -3224,7 +3225,7 @@ function getLetterChrome(headerHtml, footerHtml, coordinatorHtml) {
   let coordinatorH = 0;
   if (coordinatorHtml) {
     sandbox.innerHTML = `<div style="width:794px;font-family:${LETTER_FONT_FAMILY};font-size:8pt">${coordinatorHtml}</div>`;
-    coordinatorH = sandbox.querySelector('.letter-coordinator-wrap')?.offsetHeight || 36;
+    coordinatorH = (sandbox.querySelector('.letter-coordinator-wrap')?.offsetHeight || 36) + COORD_LIFT_PX;
   }
   _letterChromeCache = {
     pageH: 1122,
@@ -3499,14 +3500,14 @@ function normalizeLetterNoColumnWidths(rootEl) {
   });
 }
 
-function generatePreview() {
+function generatePreview(scroll = true) {
   document.getElementById('letterPreview').innerHTML = buildLetter();
   refreshPageBreakOptions();
   const preview = document.getElementById('letterPreview');
   layoutLetterPreview(preview);
   document.getElementById('cardPreview').style.display = 'block';
   setStep(4);
-  document.getElementById('cardPreview').scrollIntoView({ behavior: 'smooth' });
+  if (scroll) document.getElementById('cardPreview').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ========================================================================
