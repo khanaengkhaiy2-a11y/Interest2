@@ -1075,6 +1075,11 @@
           <input type="text" id="noticeMonth" placeholder="03/2026">
         </div>
         <div class="form-group">
+          <label>ເດືອນດອກເບ້ຍເກີດ (ຫົວຄໍລຳຕາຕະລາງ)</label>
+          <input type="text" id="accruedMonthLabel" placeholder="06/2026" oninput="generatePreview(false)">
+          <div class="helper-text">ດຶງອັດຕະໂນມັດຈາກຊ່ວງຄຳນວນ — ແກ້ເດືອນໃນຫົວຄໍລຳ «ດອກເບ້ຍເກີດຂຶ້ນໃນເດືອນ …» ໄດ້, <b>ບໍ່ກະທົບຈຳນວນເງິນ</b></div>
+        </div>
+        <div class="form-group">
           <label>ວັນກຳນົດຊຳລະຊ້າສຸດ</label>
           <input type="date" id="dueDate">
         </div>
@@ -2266,6 +2271,7 @@ function proceedToLetterInfo() {
     const m = String(today.getMonth()+1).padStart(2,'0');
     document.getElementById('noticeMonth').value = `${m}/${today.getFullYear()}`;
   }
+  syncAccruedMonthLabel();
   if (!document.getElementById('dueDate').value) {
     const due = new Date(today.getFullYear(), today.getMonth(), 25);
     document.getElementById('dueDate').value = due.toISOString().split('T')[0];
@@ -2422,6 +2428,14 @@ function getAccruedPeriodLabel(noticeMonth) {
   return first === last ? fmtMY(first) : `${fmtMY(first)} - ${fmtMY(last)}`;
 }
 
+/** ເຕີມຄ່າເດືອນດອກເບ້ຍເກີດຈາກຊ່ວງຄຳນວນ (ໃຊ້ໃນຫົວຄໍລຳເທົ່ານັ້ນ — ບໍ່ແຕະຈຳນວນເງິນ) */
+function syncAccruedMonthLabel() {
+  const el = document.getElementById('accruedMonthLabel');
+  if (!el) return;
+  const noticeMonth = document.getElementById('noticeMonth')?.value || '';
+  el.value = getAccruedPeriodLabel(noticeMonth);
+}
+
 function countInterestOverdueMonths() {
   const keys = new Set();
   interestRows.forEach(r => {
@@ -2505,14 +2519,17 @@ function getSelectedCrgTier() {
 function resolveGradeWarningMode() {
   const mode = document.getElementById('gradeWarningMode')?.value || 'none';
   if (mode === 'none') return null;
-  if (mode === 'B') return 'B';
-  if (mode === 'C') return 'C';
-  if (mode === 'auto') {
+  let grade = null;
+  if (mode === 'B') grade = 'B';
+  else if (mode === 'C') grade = 'C';
+  else if (mode === 'auto') {
     const g = getSelectedCrgTier();
-    if (g === 'B') return 'B';
-    if (g === 'C' || g === 'D' || g === 'E') return 'C';
+    if (g === 'B') grade = 'B';
+    else if (g === 'C' || g === 'D' || g === 'E') grade = 'C';
   }
-  return null;
+  // ຄ້າງດອກເບ້ຍ ≤2 ເດືອນ → ຄຳເວົ້າປິດທ້າຍແບບເກດ A (ບໍ່ເຕືອນ NPL) ແມ້ PDF ບອກ B/C
+  if (grade && countInterestOverdueMonths() <= 2) return null;
+  return grade;
 }
 
 function gradePayableText() {
@@ -2587,9 +2604,10 @@ function buildLetter() {
   // Refs
   const refLines = contracts.map(c => `<div>- ${c.replace(/^-\s*/, '')}</div>`).join('');
 
-  // #1, #2 — compute period labels
+  // #1, #2 — period labels (accrued month: editable text only, amounts unchanged)
   const unpaidPeriodLabel = getUnpaidPeriodLabel();
-  const accruedPeriodLabel = getAccruedPeriodLabel(noticeMonth);
+  const accruedMonthManual = (document.getElementById('accruedMonthLabel')?.value || '').trim();
+  const accruedPeriodLabel = accruedMonthManual || getAccruedPeriodLabel(noticeMonth);
 
   // Interest table
   let intTable = '';
