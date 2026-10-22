@@ -1155,6 +1155,13 @@
           </select>
           <div class="helper-text">ຈັບຈາກ PDF ອັດຕະໂນມັດ — ປ່ຽນເອງໄດ້ຕາມຕ້ອງການ</div>
         </div>
+        <div class="form-group full" id="gradeBWarnWrap">
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-weight:600;margin-bottom:4px">
+            <input type="checkbox" id="gradeBWarnEnable" onchange="onGradeBWarnToggle()">
+            <span>ໃສ່ຄຳເຕືອນເກດ B (NPL) ໃນທ້າຍໜັງສື</span>
+          </label>
+          <div class="helper-text">ເປີດ = ຂໍ້ຄວາມເຕືອນຍາວ (ຄ້າງຊຳລະ, ເຕືອນ NPL). ປິດ = ຂໍ້ຄວາມແຈ້ງທົ່ວໄປ. ໃຊ້ໄດ້ແມ້ຄ້າງດອກ 1–2 ເດືອນ — ທ່ານເລືອກເອງ.</div>
+        </div>
         <div id="gradeTextPanel" style="display:none;margin-top:8px;padding:14px 16px;background:var(--bg);border-radius:10px;border-left:3px solid var(--red)">
           <div class="helper-text" style="margin-bottom:10px">
             ແກ້ໄຂຂໍ້ຄວາມໄດ້ — ຕົວຍຶດ: <code>{payText}</code> <code>{dueDate}</code> <code>{overdueDetail}</code> <code>{tier}</code>
@@ -1339,6 +1346,13 @@ function fmt(n, dec) {
   return Number(n).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
 }
 function fmt0(n) { return fmt(n, 0); }
+/** ອັດຕາດອກເບີ້ຍ % ໃນໜັງສື — ສອງຕົວເລກຫຼັງຈຸດທົດສະນິຍົມສະເໝີ */
+function fmtRatePct(rate) {
+  if (rate === '' || rate === null || rate === undefined) return '-';
+  const n = parseN(rate);
+  if (isNaN(n)) return '-';
+  return n.toFixed(2) + '%';
+}
 function roundWhole(n) {
   const num = parseN(n);
   if (!num && num !== 0) return 0;
@@ -1642,9 +1656,21 @@ function ensureGradeTextDefaults() {
   if (c && !c.value.trim()) c.value = DEFAULT_GRADE_TEXT_C;
 }
 
+function isGradeBWarnEnabled() {
+  return document.getElementById('gradeBWarnEnable')?.checked === true;
+}
+
+function onGradeBWarnToggle() {
+  onGradeWarningModeChange(false);
+}
+
 function onGradeWarningModeChange(skipPreview) {
   ensureGradeTextDefaults();
   const mode = document.getElementById('gradeWarningMode')?.value || 'none';
+  if (mode === 'B') {
+    const cb = document.getElementById('gradeBWarnEnable');
+    if (cb) cb.checked = true;
+  }
   const panel = document.getElementById('gradeTextPanel');
   const bWrap = document.getElementById('gradeTextBWrap');
   const cWrap = document.getElementById('gradeTextCWrap');
@@ -1781,10 +1807,6 @@ async function parseAllFiles() {
 
     // Determine letter type
     updateLetterType();
-    if (creditGrade === 'B' || creditGrade === 'C' || creditGrade === 'D' || creditGrade === 'E') {
-      const sel = document.getElementById('gradeWarningMode');
-      if (sel && sel.value === 'none') sel.value = 'auto';
-    }
     syncCrgTierFromPdf();
     ensureGradeTextDefaults();
     onGradeWarningModeChange(true);
@@ -2672,7 +2694,10 @@ function getSelectedCrgTier() {
 
 function resolveGradeWarningMode() {
   const mode = document.getElementById('gradeWarningMode')?.value || 'none';
-  if (mode === 'none') return null;
+  if (mode === 'none') {
+    if (isGradeBWarnEnabled() && getSelectedCrgTier() === 'B') return 'B';
+    return null;
+  }
   let grade = null;
   if (mode === 'B') grade = 'B';
   else if (mode === 'C') grade = 'C';
@@ -2681,7 +2706,10 @@ function resolveGradeWarningMode() {
     if (g === 'B') grade = 'B';
     else if (g === 'C' || g === 'D' || g === 'E') grade = 'C';
   }
-  // ຄ້າງດອກເບ້ຍ ≤2 ເດືອນ → ຄຳເວົ້າປິດທ້າຍແບບເກດ A (ບໍ່ເຕືອນ NPL) ແມ້ PDF ບອກ B/C
+  if (grade === 'B') {
+    return isGradeBWarnEnabled() ? 'B' : null;
+  }
+  // ເກດ C: ຄ້າງດອກ ≤2 ເດືອນ → ບໍ່ໃຊ້ຄຳເຕືອນ NPL/ເສຍ (ແຈ້ງທົ່ວໄປ)
   if (grade && countInterestOverdueMonths() <= 2) return null;
   return grade;
 }
@@ -2814,7 +2842,7 @@ function buildLetter() {
       const cur = r.currency || 'ກີບ';
       if (!totalsByCurrency[cur]) totalsByCurrency[cur] = 0;
       totalsByCurrency[cur] += rowTotal;
-      const rateDisp = r.rate ? (Number(r.rate).toFixed(2).replace(/\.?0+$/,'') + '%') : '-';
+      const rateDisp = fmtRatePct(r.rate);
       const limitFmt = formatLimitOutstanding(r.limit, r.currency);
       const outFmt = formatLimitOutstanding(r.outstanding, r.currency);
       const unpaidStr = unpaidR ? fmt0(unpaidR) : '';
