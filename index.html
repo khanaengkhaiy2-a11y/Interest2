@@ -1085,7 +1085,17 @@
         <div class="form-group">
           <label>ເດືອນດອກເບ້ຍເກີດ (ຫົວຄໍລຳຕາຕະລາງ)</label>
           <input type="text" id="accruedMonthLabel" placeholder="06/2026" oninput="generatePreview(false)">
-          <div class="helper-text">ແກ້ຫົວຄໍລຳ «ດອກເບ້ຍເກີດຂຶ້ນໃນເດືອນ …» ໄດ້. ໂໝດເຕັມເດືອນ = ຕາມ «ເດືອນທີ່ແຈ້ງ».</div>
+          <div class="helper-text">ແກ້ຫົວຄໍລຳ «ດອກເບ້ຍເກີດຂຶ້ນໃນເດືອນ …» ໄດ້. ໂໝດເຕັມເດືອນ = ຕາມ «ເດືອນທີ່ແຈ້ง».</div>
+        </div>
+        <div class="form-group">
+          <label>ຫົວຄໍລຳ «ດອກເບ້ຍຄ້າງ» (ເດືອນ)</label>
+          <input type="text" id="unpaidMonthLabel" placeholder="07/2026 - 09/2026" oninput="generatePreview(false)">
+          <div class="helper-text">ວ່າງ = ລະບົບຄິດຈາກງວດຄ້າງໃນ PDF (ເຊັ່ນ 09/2026 ຫຼື 08/2026 - 09/2026). ໃຊ້ເມື່ອລູກຄ້າຊຳລະດອກ 3 ເດືອນຕໍ່ຄັ້ງ.</div>
+        </div>
+        <div class="form-group">
+          <label>ຫົວຄໍລຳ «ດອກເບ້ຍປັບໄໝ» (ຊ່ວງວັນ — ຖ້າຕ້ອງການ)</label>
+          <input type="text" id="intPenaltyLabel" placeholder="01/07/2026 - 30/09/2026" oninput="generatePreview(false)">
+          <div class="helper-text">ວ່າງ = ສະແດງ «ດອກເບ້ຍ / ປັບໄໝ» ແບບເກົ່າ. ມີຂໍ້ຄວາມ = ໃສ່ໃນແຖວທີສອງຂອງຫົວຄໍລຳ.</div>
         </div>
         <div class="form-group">
           <label>ວັນກຳນົດຊຳລະຊ້າສຸດ</label>
@@ -1971,7 +1981,6 @@ function hasAnyLetterAccrued() {
 }
 
 function shouldShowLetterAccruedCol() {
-  if (getAccruedNoticeMode() === 'full') return interestRows.length > 0;
   return hasAnyLetterAccrued();
 }
 
@@ -2793,11 +2802,13 @@ function buildLetter() {
   // Refs
   const refLines = contracts.map(c => `<div>- ${c.replace(/^-\s*/, '')}</div>`).join('');
 
-  // #1, #2 — period labels (accrued month: editable text only, amounts unchanged)
-  const unpaidPeriodLabel = getUnpaidPeriodLabel();
+  // #1, #2 — period labels (editable text only; amounts unchanged)
+  const unpaidMonthManual = (document.getElementById('unpaidMonthLabel')?.value || '').trim();
+  const unpaidPeriodLabel = unpaidMonthManual || getUnpaidPeriodLabel();
   const accruedMonthManual = (document.getElementById('accruedMonthLabel')?.value || '').trim();
   const accruedPeriodLabel = accruedMonthManual
     || (getAccruedNoticeMode() === 'full' && noticeMonth && noticeMonth !== '__/____' ? noticeMonth : getAccruedPeriodLabel(noticeMonth));
+  const intPenaltyManual = (document.getElementById('intPenaltyLabel')?.value || '').trim();
 
   // Interest table
   let intTable = '';
@@ -2805,9 +2816,11 @@ function buildLetter() {
     const showUnpaidCol = hasAnyIntUnpaid() || forceShowUnpaidCol;
     const showIntPenCol = hasAnyIntPenalty();
     const showAccruedCol = shouldShowLetterAccruedCol();
-    const unpaidHead = unpaidPeriodLabel ? `ດອກເບ້ຍຄ້າງ<br>ເດືອນ ${unpaidPeriodLabel}` : 'ດອກເບ້ຍຄ້າງ';
-    const accruedHead = `ດອກເບ້ຍເກີດຂຶ້ນ<br>ໃນເດືອນ ${accruedPeriodLabel}`;
-    const intPenHead = 'ດອກເບ້ຍ<br>ປັບໄໝ';
+    const unpaidHead = unpaidPeriodLabel ? `ດອກເບ້ຍຄ້າງ<br>ເດືອນ ${escHtml(unpaidPeriodLabel)}` : 'ດອກເບ້ຍຄ້າງ';
+    const accruedHead = `ດອກເບ້ຍເກີດຂຶ້ນ<br>ໃນເດືອນ ${escHtml(accruedPeriodLabel)}`;
+    const intPenHead = intPenaltyManual
+      ? `ດອກເບ້ຍ<br>ປັບໄໝ<br><span style="font-weight:400;font-size:0.92em">${escHtml(intPenaltyManual)}</span>`
+      : 'ດອກເບ້ຍ<br>ປັບໄໝ';
 
     const intMinColArr = [42, 0, 52, 52, 48];
     if (showUnpaidCol) intMinColArr.push(0);
